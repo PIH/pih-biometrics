@@ -1,0 +1,11 @@
+matchingServiceEnabled: "true"
+fingerprintScanningEnabled: "true"
+
+matchingThreshold: "72"
+matchingSpeed: "LOW"
+templateSize: "LARGE"
+
+logging:
+  level:
+    root: "WARN"
+    org.pih: "DEBUG"

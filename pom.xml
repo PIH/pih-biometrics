@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.pih</groupId>
+    <artifactId>pih-biometrics</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>PIH Biometric Services</name>
+    <description>Services that handles extraction, enrollment, identification, storage of biometric templates</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.4.1.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <properties>
+        <neurotecVersion>9.0.0.0</neurotecVersion>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+    </properties>
+
+    <dependencies>
+
+        <!--
+            Spring boot is very convention-over-configuration driven.  One aspect of this is that, if it finds certain
+            classes on the classpath, then it will try to set up the environment to use them in an opinionated way.
+            So, the libraries we add need to be done with this in mind.
+        -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jersey</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Neurotechnology -->
+
+        <dependency>
+            <groupId>com.neurotec</groupId>
+            <artifactId>neurotec-biometrics</artifactId>
+            <version>${neurotecVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neurotec</groupId>
+            <artifactId>neurotec-core</artifactId>
+            <version>${neurotecVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neurotec</groupId>
+            <artifactId>neurotec-licensing</artifactId>
+            <version>${neurotecVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neurotec</groupId>
+            <artifactId>neurotec-biometrics-client</artifactId>
+            <version>${neurotecVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neurotec</groupId>
+            <artifactId>neurotec-media</artifactId>
+            <version>${neurotecVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neurotec</groupId>
+            <artifactId>neurotec-media-processing</artifactId>
+            <version>${neurotecVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>4.2.2-Neurotec</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neurotec</groupId>
+            <artifactId>neurotec-devices</artifactId>
+            <version>${neurotecVersion}</version>
+        </dependency>
+
+        <!-- commons -->
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+        </dependency>
+
+        <!-- test dependencies -->
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <forkMode>once</forkMode>
+                    <argLine>-Djna.library.path=${neurotechnology-jna-library-path}</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
