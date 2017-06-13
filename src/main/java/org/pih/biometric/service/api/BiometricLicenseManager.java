@@ -33,7 +33,8 @@ public class BiometricLicenseManager {
 	protected final Log log = LogFactory.getLog(this.getClass());
 
     public static final String FINGER_MATCHING_COMPONENT = "Biometrics.FingerMatching";
-    public static final String FINGER_EXTRACTION_COMPONENT = "Biometrics.FingerExtraction,Devices.FingerScanners";
+    public static final String FINGER_EXTRACTION_COMPONENT = "Biometrics.FingerExtraction";
+    public static final String FINGER_SCANNING_COMPONENT = "Devices.FingerScanners";
 
 	@Autowired
     BiometricsConfig config;
@@ -92,6 +93,13 @@ public class BiometricLicenseManager {
     }
 
     /**
+     * Obtain extraction license
+     */
+    protected void obtainScanningLicense() {
+        obtainLicense(FINGER_SCANNING_COMPONENT);
+    }
+
+    /**
      * Release matching license
      */
     protected void releaseMatchingLicense() {
@@ -103,6 +111,13 @@ public class BiometricLicenseManager {
      */
     protected void releaseExtractionLicense() {
         releaseLicense(FINGER_EXTRACTION_COMPONENT);
+    }
+
+    /**
+     * Release scanning license
+     */
+    protected void releaseScanningLicense() {
+        releaseLicense(FINGER_SCANNING_COMPONENT);
     }
 
     /**

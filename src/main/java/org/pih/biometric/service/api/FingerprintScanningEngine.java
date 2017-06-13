@@ -158,10 +158,12 @@ public class FingerprintScanningEngine {
 
     private void obtainLicense() {
         licenseManager.obtainExtractionLicense();
+        licenseManager.obtainScanningLicense();
     }
 
     private void releaseLicense() {
         licenseManager.releaseExtractionLicense();
+        licenseManager.releaseScanningLicense();
     }
 
     /**

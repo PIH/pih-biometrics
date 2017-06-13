@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @WebAppConfiguration
 public abstract class BaseBiometricTest {
 
-    protected static final File LICENSE_DIR = new File(System.getProperty("user.home"), ".biometrics");
+    protected static final File LICENSE_DIR = new File(System.getProperty("user.home"), ".pih-biometrics");
     protected static final File DB_FILE = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString() + ".db");
 
     protected MockMvc mockMvc;
@@ -84,7 +84,7 @@ public abstract class BaseBiometricTest {
     protected BiometricsTemplate loadTemplateFromResource(String subjectId) throws Exception {
         InputStream templateStream = getClass().getClassLoader().getResourceAsStream("org/pih/biometric/service/"+subjectId);
         String template = new String(IOUtils.toByteArray(templateStream));
-        return new BiometricsTemplate(subjectId, template);
+        return new BiometricsTemplate(subjectId, BiometricsTemplate.Format.NEUROTECHNOLOGY, template);
     }
 
     /**

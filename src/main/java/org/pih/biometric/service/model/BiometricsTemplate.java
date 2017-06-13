@@ -18,13 +18,19 @@ import java.io.Serializable;
  */
 public class BiometricsTemplate implements Serializable {
 
+    public enum Format {
+        NEUROTECHNOLOGY, ISO, ANSI
+    }
+
     private String subjectId;
+    private Format format;
     private String template;
 
     public BiometricsTemplate() { }
 
-    public BiometricsTemplate(String subjectId, String template) {
+    public BiometricsTemplate(String subjectId, Format format, String template) {
         this.subjectId = subjectId;
+        this.format = format;
         this.template = template;
     }
 
@@ -34,6 +40,14 @@ public class BiometricsTemplate implements Serializable {
 
     public void setSubjectId(String subjectId) {
         this.subjectId = subjectId;
+    }
+
+    public Format getFormat() {
+        return format;
+    }
+
+    public void setFormat(Format format) {
+        this.format = format;
     }
 
     public String getTemplate() {

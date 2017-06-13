@@ -33,7 +33,7 @@ This utilizes the Neurotechnology VeriFinger SDK and currently is geared towards
 
 * Ensure you have a valid license for the "Fingerprint Matcher" component
   * Purchase a new license if necessary at the Neurotechnolgy website (http://www.neurotechnology.com/cgi-bin/order.cgi)
-  * If you have purchased an Internet License (*_internet_license_*.*.lic), copy this license file to a new directory at ${user.home}/.biometrics
+  * If you have purchased an Internet License (*_internet_license_*.*.lic), copy this license file to a new directory at ${user.home}/.pih-biometrics
 
 * Build the project
   * From the root of this repository, run ```mvn clean install```

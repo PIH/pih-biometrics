@@ -17,6 +17,9 @@ import com.neurotec.biometrics.NMatchingSpeed;
 import com.neurotec.biometrics.NSubject;
 import com.neurotec.biometrics.NTemplateSize;
 import com.neurotec.biometrics.client.NBiometricClient;
+import com.neurotec.biometrics.standards.CBEFFBDBFormatIdentifiers;
+import com.neurotec.biometrics.standards.CBEFFBiometricOrganizations;
+import com.neurotec.biometrics.standards.FMRecord;
 import com.neurotec.io.NBuffer;
 import com.neurotec.lang.NObject;
 import org.apache.commons.codec.binary.Base64;
@@ -201,9 +204,17 @@ public class BiometricMatchingEngine {
     }
 
     /**
-     * @return the biometric template for the given subjectId
+     * @return the biometric template for the given subjectId with the default Neurotechnology format
      */
     public BiometricsTemplate getTemplate(String subjectId) {
+        return getTemplate(subjectId, BiometricsTemplate.Format.NEUROTECHNOLOGY);
+    }
+
+    /**
+     * @return the biometric template for the given subjectId with the specified format.
+     * If format is null, it defaults to the Neurotechnology proprietary format
+     */
+    public BiometricsTemplate getTemplate(String subjectId, BiometricsTemplate.Format format) {
         log.debug("Retrieving template for subject " + subjectId);
 
         NBiometricClient client = null;
@@ -212,12 +223,42 @@ public class BiometricMatchingEngine {
         obtainLicense();
         try {
             client = createBiometricClient();
-            subject = createSubject(new BiometricsTemplate(subjectId, null));
+            subject = createSubject(new BiometricsTemplate(subjectId, format,null));
             NBiometricStatus status = client.get(subject);
 
+            format = (format == null ? BiometricsTemplate.Format.NEUROTECHNOLOGY : format);
+
             if (status == NBiometricStatus.OK) {
+                log.debug("Found subject " + subjectId + ", extracting template in format: " + format);
+
                 byte[] templateBytes = subject.getTemplateBuffer().toByteArray();
-                return new BiometricsTemplate(subject.getId(), Base64.encodeBase64String(templateBytes));
+
+                // Extracting a template in a format other than the default requires an extraction license
+                if (format != null && format != BiometricsTemplate.Format.NEUROTECHNOLOGY) {
+                    try {
+                        licenseManager.obtainExtractionLicense();
+                        if (format == BiometricsTemplate.Format.ISO) {
+                            templateBytes = subject.getTemplateBuffer(
+                                    CBEFFBiometricOrganizations.ISO_IEC_JTC_1_SC_37_BIOMETRICS,
+                                    CBEFFBDBFormatIdentifiers.ISO_IEC_JTC_1_SC_37_BIOMETRICS_FINGER_MINUTIAE_RECORD_FORMAT,
+                                    FMRecord.VERSION_ISO_CURRENT).toByteArray();
+                        }
+                        else if (format == BiometricsTemplate.Format.ANSI) {
+                            templateBytes = subject.getTemplateBuffer(
+                                    CBEFFBiometricOrganizations.INCITS_TC_M1_BIOMETRICS,
+                                    CBEFFBDBFormatIdentifiers.INCITS_TC_M1_BIOMETRICS_FINGER_MINUTIAE_U,
+                                    FMRecord.VERSION_ANSI_CURRENT).toByteArray();
+                        }
+                        else {
+                            throw new BiometricServiceException("Unable to handle extract template in format: " + format);
+                        }
+                    }
+                    finally {
+                        licenseManager.releaseExtractionLicense();
+                    }
+                }
+
+                return new BiometricsTemplate(subject.getId(), format, Base64.encodeBase64String(templateBytes));
             }
             else if (status != NBiometricStatus.ID_NOT_FOUND) {
                 throw new BiometricServiceException("An error occurred while looking up biometrics for subject. Status: " + status);
