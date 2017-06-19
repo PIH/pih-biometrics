@@ -41,12 +41,11 @@ public class StatusController {
         try {
             Integer numEnrolled = engine.getNumberEnrolled();
             status.setNumberEnrolled(numEnrolled);
-            status.setStatus(BiometricsStatus.AVAILABLE_STATUS);
-            status.setConfig(config);
+            status.setEnabled(true);
         }
         catch (Exception e) {
-            status.setStatus(BiometricsStatus.NOT_AVAILABLE_STATUS);
-            status.setErrorDetails(e.getMessage());
+            status.setEnabled(false);
+            status.setStatusMessage(e.getMessage());
         }
         return status;
     }

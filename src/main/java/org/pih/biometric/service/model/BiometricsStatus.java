@@ -16,30 +16,26 @@ import java.io.Serializable;
  */
 public class BiometricsStatus implements Serializable {
 
-    public static final String AVAILABLE_STATUS = "AVAILABLE";
-    public static final String NOT_AVAILABLE_STATUS = "NOT AVAILABLE";
-
-    private String status;
-    private String errorDetails;
+    private boolean enabled;
+    private String statusMessage;
     private Integer numberEnrolled;
-    private BiometricsConfig config;
 
     public BiometricsStatus() { }
 
-    public String getStatus() {
-        return status;
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
-    public String getErrorDetails() {
-        return errorDetails;
+    public String getStatusMessage() {
+        return statusMessage;
     }
 
-    public void setErrorDetails(String errorDetails) {
-        this.errorDetails = errorDetails;
+    public void setStatusMessage(String statusMessage) {
+        this.statusMessage = statusMessage;
     }
 
     public Integer getNumberEnrolled() {
@@ -48,13 +44,5 @@ public class BiometricsStatus implements Serializable {
 
     public void setNumberEnrolled(Integer numberEnrolled) {
         this.numberEnrolled = numberEnrolled;
-    }
-
-    public BiometricsConfig getConfig() {
-        return config;
-    }
-
-    public void setConfig(BiometricsConfig config) {
-        this.config = config;
     }
 }

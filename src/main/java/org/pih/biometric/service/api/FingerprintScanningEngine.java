@@ -10,14 +10,18 @@
 package org.pih.biometric.service.api;
 
 import com.neurotec.biometrics.NBiometricStatus;
+import com.neurotec.biometrics.NFRecord;
+import com.neurotec.biometrics.NFTemplate;
 import com.neurotec.biometrics.NFinger;
 import com.neurotec.biometrics.NSubject;
+import com.neurotec.biometrics.NTemplate;
 import com.neurotec.biometrics.NTemplateSize;
 import com.neurotec.biometrics.client.NBiometricClient;
 import com.neurotec.devices.NDevice;
 import com.neurotec.devices.NDeviceManager;
 import com.neurotec.devices.NDeviceType;
 import com.neurotec.devices.NFScanner;
+import com.neurotec.io.NBuffer;
 import com.neurotec.lang.NObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -28,6 +32,7 @@ import org.pih.biometric.service.exception.NonUniqueDeviceException;
 import org.pih.biometric.service.exception.ServiceNotEnabledException;
 import org.pih.biometric.service.model.BiometricsConfig;
 import org.pih.biometric.service.model.BiometricsScanner;
+import org.pih.biometric.service.model.BiometricsTemplate;
 import org.pih.biometric.service.model.Fingerprint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -143,14 +148,60 @@ public class FingerprintScanningEngine {
             log.debug("Fingerprint captured successfully...");
 
             Fingerprint fp = new Fingerprint();
-            fp.setTemplate(Base64.encodeBase64String(subject.getTemplateBuffer().toByteArray()));
-            fp.setImage(Base64.encodeBase64String(finger.getImage().save().toByteArray()));
+            fp.setTemplate(encode(subject.getTemplateBuffer().toByteArray()));
+            fp.setImage(encode(finger.getImage().save().toByteArray()));
 
             return fp;
         }
         finally {
             releaseLicense();
             dispose(finger, subject, client);
+        }
+    }
+
+    /**
+     * Generates a single template from a List of fingerprints
+     */
+    public BiometricsTemplate generateTemplate(List<Fingerprint> fingerprints) {
+        log.debug("Generating template for: " + fingerprints);
+        NBiometricClient client = null;
+        NFTemplate compositeTemplate = null;
+        obtainLicense();
+        try {
+            String subjectId = null;
+            BiometricsTemplate.Format format = null;
+            client = createBiometricClient();
+            compositeTemplate = new NFTemplate();
+
+            for (Fingerprint fingerprint : fingerprints) {
+                subjectId = fingerprint.getSubjectId() == null ? null : fingerprint.getSubjectId(); // Assumes all fingerprints are from the same subject
+                format = fingerprint.getFormat() == null ? null : fingerprint.getFormat();  // Assumes all fingerprints are in the same format
+                if (fingerprint.getTemplate() != null) {
+                    NTemplate template = null;
+                    try {
+                        byte[] templateBytes = Base64.decodeBase64(fingerprint.getTemplate());
+                        template = new NTemplate(new NBuffer(templateBytes));
+                        if (template.getFingers() != null) {
+                            for (NFRecord record : template.getFingers().getRecords()) {
+                                compositeTemplate.getRecords().add(record);
+                            }
+                        }
+                    }
+                    finally {
+                        dispose(template);
+                    }
+                }
+            }
+            log.debug("Created composite template containing " + compositeTemplate.getRecords().size() + " records");
+            BiometricsTemplate ret = new BiometricsTemplate();
+            ret.setSubjectId(subjectId);
+            ret.setFormat(format);
+            ret.setTemplate(encode(compositeTemplate.save().toByteArray()));
+            return ret;
+        }
+        finally {
+            releaseLicense();
+            dispose(compositeTemplate, client);
         }
     }
 
@@ -164,6 +215,10 @@ public class FingerprintScanningEngine {
     private void releaseLicense() {
         licenseManager.releaseExtractionLicense();
         licenseManager.releaseScanningLicense();
+    }
+
+    private String encode(byte[] bytesToEncode) {
+        return Base64.encodeBase64String(bytesToEncode);
     }
 
     /**

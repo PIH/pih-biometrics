@@ -11,9 +11,11 @@ package org.pih.biometric.service.web;
 
 import org.pih.biometric.service.api.FingerprintScanningEngine;
 import org.pih.biometric.service.model.BiometricsScanner;
+import org.pih.biometric.service.model.BiometricsTemplate;
 import org.pih.biometric.service.model.Fingerprint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,5 +51,14 @@ public class FingerprintScanController {
     @ResponseBody
     public Fingerprint scan(@RequestParam(value="deviceId", required=false) String deviceId) {
         return engine.scanFingerprint(deviceId);
+    }
+
+    /**
+     * @return Template that is the result of scanning one or more fingerprints
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/template")
+    @ResponseBody
+    public BiometricsTemplate generateTemplate(@RequestBody List<Fingerprint> fingerprints) {
+        return engine.generateTemplate(fingerprints);
     }
 }
