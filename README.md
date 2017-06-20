@@ -7,10 +7,12 @@ This utilizes the Neurotechnology VeriFinger SDK and currently is geared towards
 # Developer Installation
 
 * Ensure you have the VeriFinger Extended SDK installed
-  * http://www.neurotechnology.com/cgi-bin/support.cgi#pu
-  * Enter account password
-  * Click the download link for "VeriFinger 9.0 Standard / Extended SDK"
-  * (NOTE: Alternatively, one might be able to download a Trial SDK)
+  * Option 1:
+    * http://www.neurotechnology.com/cgi-bin/support.cgi#pu
+    * Enter account password
+    * Click the download link for "VeriFinger 9.0 Standard / Extended SDK"
+  * Option 2
+    * Download from Bamboo at /opt/Neurotec_Biometric_9_0_SDK.zip
   * Unzip this into a the desired location on your computer (for further reference here, we will refer to that as _NEUROTECHNOLOGY_SDK_HOME_)
 
 * Ensure you have the Neurotechnology jars available in your local .m2 repository
@@ -31,7 +33,7 @@ This utilizes the Neurotechnology VeriFinger SDK and currently is geared towards
   ```
   For more information, see: https://maven.apache.org/examples/injecting-properties-via-settings.html
 
-* Ensure you have a valid license for the "Fingerprint Matcher" component
+* Ensure you have a valid license for the "Fingerprint Matcher" component.  (You probably also need the "Fingerprint Client" component, for ISO extraction support)
   * Purchase a new license if necessary at the Neurotechnolgy website (http://www.neurotechnology.com/cgi-bin/order.cgi)
   * If you have purchased an Internet License (*_internet_license_*.*.lic), copy this license file to a new directory at ${user.home}/.pih-biometrics
 
