@@ -10,6 +10,7 @@
 package org.pih.biometric.service.api;
 
 import com.neurotec.biometrics.NBiometricStatus;
+import com.neurotec.biometrics.NFPosition;
 import com.neurotec.biometrics.NFRecord;
 import com.neurotec.biometrics.NFTemplate;
 import com.neurotec.biometrics.NFinger;
@@ -36,6 +37,7 @@ import org.pih.biometric.service.model.BiometricsTemplate;
 import org.pih.biometric.service.model.Fingerprint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -91,14 +93,21 @@ public class FingerprintScanningEngine {
      * Throws an exception if exactly one fingerprint reader is not found
      */
     public Fingerprint scanFingerprint() {
-        return scanFingerprint(null);
+        return scanFingerprint(null, null);
     }
 
     /**
-     * Scans a fingerprint using the device with the given id
-     * If deviceId is null, but only one device is found, use that device
+     * Scans a fingerprint using the given device
      */
     public Fingerprint scanFingerprint(String deviceId) {
+        return scanFingerprint(deviceId, null);
+    }
+
+    /**
+     * Scans a fingerprint using the given device, associating with the finger(s) of the given type
+     * If deviceId is null, but only one device is found, use that device
+     */
+    public Fingerprint scanFingerprint(String deviceId, String type) {
         log.debug("Scanning fingerprint from device: " + deviceId);
         NBiometricClient client = null;
         NSubject subject = null;
@@ -131,6 +140,10 @@ public class FingerprintScanningEngine {
             client.setFingerScanner(scanner);
             subject = new NSubject();
             finger = new NFinger();
+            NFPosition position = getFingerPosition(type);
+            if (position != null) {
+                finger.setPosition(getFingerPosition(type));
+            }
             subject.getFingers().add(finger);
 
             log.debug("Capturing fingerprint...");
@@ -232,6 +245,16 @@ public class FingerprintScanningEngine {
         client.setDatabaseConnectionToSQLite(config.getSqliteDatabasePath());
         client.setFingersTemplateSize(NTemplateSize.valueOf(config.getTemplateSize().name()));
         return client;
+    }
+
+    /**
+     * @return the NFPosition that matches the given type (by enum lookup)
+     */
+    private NFPosition getFingerPosition(String type) {
+        if (StringUtils.isEmpty(type)) {
+            return null;
+        }
+        return NFPosition.valueOf(type);
     }
 
     /**
