@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Encapsulates configuration of the Neurotechnology client
  */
-public class BiometricsConfig implements Serializable {
+public class BiometricConfig implements Serializable {
 
     public enum MatchingSpeed {
         LOW, MEDIUM, HIGH

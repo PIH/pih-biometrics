@@ -16,14 +16,14 @@ import java.io.Serializable;
  * a biometric database for matches of an input template
  * The matchScore is a numeric that indicates the strength of the match
  */
-public class BiometricsMatch implements Serializable {
+public class BiometricMatch implements Serializable {
 
     private String subjectId;
     private Integer matchScore;
 
-    public BiometricsMatch() { }
+    public BiometricMatch() { }
 
-    public BiometricsMatch(String subjectId, Integer matchScore) {
+    public BiometricMatch(String subjectId, Integer matchScore) {
         this.subjectId = subjectId;
         this.matchScore = matchScore;
     }

@@ -11,7 +11,8 @@ package org.pih.biometric.service;
 
 import org.junit.Test;
 import org.pih.biometric.service.api.BiometricMatchingEngine;
-import org.pih.biometric.service.model.BiometricsTemplate;
+import org.pih.biometric.service.model.BiometricSubject;
+import org.pih.biometric.service.model.BiometricTemplateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,21 +30,17 @@ public class BiometricMatchingEngineTest extends BaseBiometricTest {
     @Test
     public void shouldGetTemplatesInVariousFormats() throws Exception {
         String subjectId = "101-01-1";
-        BiometricsTemplate template = loadTemplateFromResource(subjectId);
-        matchingEngine.enroll(template);
+        BiometricSubject subject = loadSubjectFromResource(subjectId);
+        matchingEngine.enroll(subject);
 
         // Get template in default format
-        String defaultFormat = matchingEngine.getTemplate(subjectId).getTemplate();
-        String neuroFormat = matchingEngine.getTemplate(subjectId, BiometricsTemplate.Format.NEUROTECHNOLOGY).getTemplate();
+        String defaultFormat = matchingEngine.getSubject(subjectId).getFingerprints().get(0).getTemplate();
+        String neuroFormat = matchingEngine.getSubject(subjectId, BiometricTemplateFormat.PROPRIETARY).getFingerprints().get(0).getTemplate();
 
         // For now just verify that these extractions all work successfully, and produce different template results
         assertThat(neuroFormat, is(defaultFormat));
 
-        String isoFormat = matchingEngine.getTemplate(subjectId, BiometricsTemplate.Format.ISO).getTemplate();
+        String isoFormat = matchingEngine.getSubject(subjectId, BiometricTemplateFormat.ISO).getFingerprints().get(0).getTemplate();
         assertThat(isoFormat, not(defaultFormat));
-
-        String ansiFormat = matchingEngine.getTemplate(subjectId, BiometricsTemplate.Format.ANSI).getTemplate();
-        assertThat(ansiFormat, not(defaultFormat));
-        assertThat(ansiFormat, not(isoFormat));
     }
 }

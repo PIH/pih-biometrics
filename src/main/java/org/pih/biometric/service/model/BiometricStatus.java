@@ -14,13 +14,13 @@ import java.io.Serializable;
 /**
  * Simple bean to encapsulate the status of the system
  */
-public class BiometricsStatus implements Serializable {
+public class BiometricStatus implements Serializable {
 
     private boolean enabled;
     private String statusMessage;
     private Integer numberEnrolled;
 
-    public BiometricsStatus() { }
+    public BiometricStatus() { }
 
     public boolean isEnabled() {
         return enabled;

@@ -15,7 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.pih.biometric.service.exception.BiometricServiceException;
-import org.pih.biometric.service.model.BiometricsConfig;
+import org.pih.biometric.service.model.BiometricConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +37,7 @@ public class BiometricLicenseManager {
     public static final String FINGER_SCANNING_COMPONENT = "Devices.FingerScanners";
 
 	@Autowired
-    BiometricsConfig config;
+    BiometricConfig config;
 
     /**
      * On startup, we ensure licenses are appropriately added and the fingerprint server is available

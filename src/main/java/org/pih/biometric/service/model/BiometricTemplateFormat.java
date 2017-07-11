@@ -9,22 +9,9 @@
  */
 package org.pih.biometric.service.model;
 
-import java.io.Serializable;
-
 /**
- * Represents a single fingerprint scan for a person
+ * Represents a particular Format that a sample can be stored in
  */
-public class Fingerprint extends BiometricSample implements Serializable {
-
-    private String image;
-
-    public Fingerprint() { }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
+public enum BiometricTemplateFormat {
+    ISO, PROPRIETARY
 }

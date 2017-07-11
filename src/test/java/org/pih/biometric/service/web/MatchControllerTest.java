@@ -11,7 +11,7 @@ package org.pih.biometric.service.web;
 
 import org.junit.Test;
 import org.pih.biometric.service.BaseBiometricTest;
-import org.pih.biometric.service.model.BiometricsTemplate;
+import org.pih.biometric.service.model.BiometricSubject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -32,10 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class MatchControllerTest extends BaseBiometricTest {
 
     @Override
-    protected List<BiometricsTemplate> loadTemplatesToDb() throws Exception {
-        List<BiometricsTemplate> l = new ArrayList<>();
-        l.add(loadTemplateToDb("101-01-1"));
-        l.add(loadTemplateToDb("101-02-1"));
+    protected List<BiometricSubject> loadSubjectsToDb() throws Exception {
+        List<BiometricSubject> l = new ArrayList<>();
+        l.add(loadSubjectToDb("101-01-1"));
+        l.add(loadSubjectToDb("101-02-1"));
         return l;
     }
 
@@ -65,7 +65,7 @@ public class MatchControllerTest extends BaseBiometricTest {
 
     @Test
     public void testMultipleTemplateMatch() throws Exception {
-        loadTemplateToDb("101-01-2");
+        loadSubjectToDb("101-01-2");
         String[] subjectIds = {"101-01-1", "101-01-2"};
         for (String subjectId : subjectIds) {
             ResultActions actions = match(subjectId);
@@ -87,7 +87,7 @@ public class MatchControllerTest extends BaseBiometricTest {
     }
 
     protected ResultActions match(String subjectId) throws Exception {
-        BiometricsTemplate template = loadTemplateFromResource(subjectId);
+        BiometricSubject template = loadSubjectFromResource(subjectId);
         ResultActions actions = mockMvc.perform(post("/match")
                 .content(objectMapper.writeValueAsString(template))
                 .contentType(MediaType.APPLICATION_JSON_UTF8));

@@ -11,7 +11,7 @@ package org.pih.biometric.service;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.pih.biometric.service.model.BiometricsConfig;
+import org.pih.biometric.service.model.BiometricConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -41,8 +41,8 @@ public class BiometricService {
 
     @ConfigurationProperties
     @Bean
-    public BiometricsConfig getConfig() {
-        return new BiometricsConfig();
+    public BiometricConfig getConfig() {
+        return new BiometricConfig();
     }
 
     /**

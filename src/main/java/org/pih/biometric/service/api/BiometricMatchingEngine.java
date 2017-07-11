@@ -12,9 +12,12 @@ package org.pih.biometric.service.api;
 import com.neurotec.biometrics.NBiometricOperation;
 import com.neurotec.biometrics.NBiometricStatus;
 import com.neurotec.biometrics.NBiometricTask;
+import com.neurotec.biometrics.NFRecord;
+import com.neurotec.biometrics.NFTemplate;
 import com.neurotec.biometrics.NMatchingResult;
 import com.neurotec.biometrics.NMatchingSpeed;
 import com.neurotec.biometrics.NSubject;
+import com.neurotec.biometrics.NTemplate;
 import com.neurotec.biometrics.NTemplateSize;
 import com.neurotec.biometrics.client.NBiometricClient;
 import com.neurotec.biometrics.standards.CBEFFBDBFormatIdentifiers;
@@ -28,9 +31,11 @@ import org.apache.commons.logging.LogFactory;
 import org.pih.biometric.service.exception.BiometricServiceException;
 import org.pih.biometric.service.exception.DuplicateSubjectException;
 import org.pih.biometric.service.exception.ServiceNotEnabledException;
-import org.pih.biometric.service.model.BiometricsConfig;
-import org.pih.biometric.service.model.BiometricsMatch;
-import org.pih.biometric.service.model.BiometricsTemplate;
+import org.pih.biometric.service.model.BiometricConfig;
+import org.pih.biometric.service.model.BiometricMatch;
+import org.pih.biometric.service.model.BiometricSubject;
+import org.pih.biometric.service.model.BiometricTemplateFormat;
+import org.pih.biometric.service.model.Fingerprint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -51,7 +56,7 @@ public class BiometricMatchingEngine {
 	protected final Log log = LogFactory.getLog(this.getClass());
 
 	@Autowired
-    BiometricsConfig config;
+    BiometricConfig config;
 
     @Autowired
     BiometricLicenseManager licenseManager;
@@ -65,72 +70,72 @@ public class BiometricMatchingEngine {
     }
 
     /**
-     * Saves a biometrics template
+     * Saves a biometrics subject
      */
-    public <T extends BiometricsTemplate> T enroll(T template) {
-        log.debug("Enrolling template for " + template.getSubjectId());
+    public BiometricSubject enroll(BiometricSubject biometricSubject) {
+        log.debug("Enrolling subject: " + biometricSubject.getSubjectId());
 
         NBiometricClient client = null;
         NSubject subject = null;
         NBiometricTask task = null;
 
-        if (template.getSubjectId() == null) {
-            template.setSubjectId(UUID.randomUUID().toString()); // Setting subject id as a random uuid
+        if (biometricSubject.getSubjectId() == null) {
+            biometricSubject.setSubjectId(UUID.randomUUID().toString()); // Setting subject id as a random uuid
         }
 
-        if (template.getTemplate() == null) {
-            throw new BiometricServiceException("Unable to enroll biometrics since template is missing");
+        if (biometricSubject.getFingerprints().isEmpty()) {
+            throw new BiometricServiceException("Unable to enroll biometrics since subject does not contain any fingerprints");
         }
 
         obtainLicense();
         try {
             client = createBiometricClient();
-            subject = createSubject(template);
+            subject = createSubject(biometricSubject);
             task = client.createTask(EnumSet.of(NBiometricOperation.ENROLL), subject);
             client.performTask(task);
 
             // Check the result and handle errors if they occur
             if (task.getStatus() != NBiometricStatus.OK) {
                 if (task.getStatus() == NBiometricStatus.DUPLICATE_ID) {
-                    throw new DuplicateSubjectException(template.getSubjectId());
+                    throw new DuplicateSubjectException(biometricSubject.getSubjectId());
                 }
                 else {
                     throw new BiometricServiceException("Unable to save the template. Status: " + task.getStatus(), task.getError());
                 }
             }
 
-            log.debug("Template saved successfully for " + template.getSubjectId());
+            log.debug("Template saved successfully for " + biometricSubject.getSubjectId());
         }
         finally {
             releaseLicense();
             dispose(task, subject, client);
         }
 
-        return template;
+        return biometricSubject;
     }
 
     /**
-     * Updates a biometrics template
+     * Updates a biometrics subject
      */
-    public <T extends BiometricsTemplate> T update(T template) {
-        log.debug("Updating template for " + template.getSubjectId());
+    public BiometricSubject update(BiometricSubject biometricSubject) {
+        log.debug("Updating subject: " + biometricSubject.getSubjectId());
 
         NBiometricClient client = null;
         NSubject subject = null;
         NBiometricTask task = null;
 
-        if (template.getSubjectId() == null) {
+        if (biometricSubject.getSubjectId() == null) {
             throw new BiometricServiceException("Unable to update template as subjectId is missing");
         }
 
-        if (template.getTemplate() == null) {
-            throw new BiometricServiceException("Unable to update template since template is missing");
+        if (biometricSubject.getFingerprints().isEmpty()) {
+            throw new BiometricServiceException("Unable to update template since no fingerprints are included");
         }
 
         obtainLicense();
         try {
             client = createBiometricClient();
-            subject = createSubject(template);
+            subject = createSubject(biometricSubject);
             task = client.createTask(EnumSet.of(NBiometricOperation.UPDATE), subject);
             client.performTask(task);
 
@@ -139,21 +144,21 @@ public class BiometricMatchingEngine {
                 throw new BiometricServiceException("Unable to save the template. Status: " + task.getStatus(), task.getError());
             }
 
-            log.debug("Template saved successfully for " + template.getSubjectId());
+            log.debug("Template saved successfully for " + biometricSubject.getSubjectId());
         }
         finally {
             releaseLicense();
             dispose(task, subject, client);
         }
 
-        return template;
+        return biometricSubject;
     }
 
     /**
-     * @return a List of BiometricsMatch that match the given sourceTemplate, along with information on the match quality
+     * @return a List of BiometricsMatch that match the given biometricSubject, along with information on the match quality
      */
-    public List<BiometricsMatch> identify(BiometricsTemplate sourceTemplate) {
-        List<BiometricsMatch> ret = new ArrayList<BiometricsMatch>();
+    public List<BiometricMatch> identify(BiometricSubject biometricSubject) {
+        List<BiometricMatch> ret = new ArrayList<BiometricMatch>();
 
         log.debug("Identifying Matches for source template...");
 
@@ -163,13 +168,13 @@ public class BiometricMatchingEngine {
         obtainLicense();
         try {
             client = createBiometricClient();
-            subject = createSubject(sourceTemplate);
+            subject = createSubject(biometricSubject);
             NBiometricStatus status = client.identify(subject);
 
             if (status == NBiometricStatus.OK) {
                 log.debug("Found " + subject.getMatchingResults().size() + " possible matches");
                 for (NMatchingResult result : subject.getMatchingResults()) {
-                    ret.add(new BiometricsMatch(result.getId(), result.getScore()));
+                    ret.add(new BiometricMatch(result.getId(), result.getScore()));
                 }
             }
             else if (status == NBiometricStatus.MATCH_NOT_FOUND) {
@@ -206,16 +211,17 @@ public class BiometricMatchingEngine {
     /**
      * @return the biometric template for the given subjectId with the default Neurotechnology format
      */
-    public BiometricsTemplate getTemplate(String subjectId) {
-        return getTemplate(subjectId, BiometricsTemplate.Format.NEUROTECHNOLOGY);
+    public BiometricSubject getSubject(String subjectId) {
+        return getSubject(subjectId, BiometricTemplateFormat.PROPRIETARY);
     }
 
     /**
      * @return the biometric template for the given subjectId with the specified format.
      * If format is null, it defaults to the Neurotechnology proprietary format
      */
-    public BiometricsTemplate getTemplate(String subjectId, BiometricsTemplate.Format format) {
-        log.debug("Retrieving template for subject " + subjectId);
+    public BiometricSubject getSubject(String subjectId, BiometricTemplateFormat format) {
+        log.debug("Retrieving subject: " + subjectId);
+        BiometricSubject biometricSubject = null;
 
         NBiometricClient client = null;
         NSubject subject = null;
@@ -223,42 +229,35 @@ public class BiometricMatchingEngine {
         obtainLicense();
         try {
             client = createBiometricClient();
-            subject = createSubject(new BiometricsTemplate(subjectId, format,null));
+            subject = createSubject(new BiometricSubject(subjectId));
             NBiometricStatus status = client.get(subject);
 
-            format = (format == null ? BiometricsTemplate.Format.NEUROTECHNOLOGY : format);
+            format = (format == null ? BiometricTemplateFormat.PROPRIETARY : format);
 
             if (status == NBiometricStatus.OK) {
-                log.debug("Found subject " + subjectId + ", extracting template in format: " + format);
 
-                byte[] templateBytes = subject.getTemplateBuffer().toByteArray();
+                biometricSubject = new BiometricSubject(subjectId);
+                log.debug("Found subject " + subjectId + ", extracting overall template in format: " + format);
 
-                // Extracting a template in a format other than the default requires an extraction license
-                if (format != null && format != BiometricsTemplate.Format.NEUROTECHNOLOGY) {
-                    try {
-                        licenseManager.obtainExtractionLicense();
-                        if (format == BiometricsTemplate.Format.ISO) {
-                            templateBytes = subject.getTemplateBuffer(
-                                    CBEFFBiometricOrganizations.ISO_IEC_JTC_1_SC_37_BIOMETRICS,
-                                    CBEFFBDBFormatIdentifiers.ISO_IEC_JTC_1_SC_37_BIOMETRICS_FINGER_MINUTIAE_RECORD_FORMAT,
-                                    FMRecord.VERSION_ISO_CURRENT).toByteArray();
+                if (format != BiometricTemplateFormat.PROPRIETARY) {
+                    subject = convertSubjectFromFormat(subject, format);
+                }
+
+                NFTemplate fingers = subject.getTemplate().getFingers();
+                if (fingers != null) {
+                    for (NFRecord record : fingers.getRecords()) {
+                        Fingerprint fp = new Fingerprint();
+                        fp.setFormat(format);
+                        if (record.getPosition() != null) {
+                            fp.setType(record.getPosition().name());
                         }
-                        else if (format == BiometricsTemplate.Format.ANSI) {
-                            templateBytes = subject.getTemplateBuffer(
-                                    CBEFFBiometricOrganizations.INCITS_TC_M1_BIOMETRICS,
-                                    CBEFFBDBFormatIdentifiers.INCITS_TC_M1_BIOMETRICS_FINGER_MINUTIAE_U,
-                                    FMRecord.VERSION_ANSI_CURRENT).toByteArray();
-                        }
-                        else {
-                            throw new BiometricServiceException("Unable to handle extract template in format: " + format);
-                        }
-                    }
-                    finally {
-                        licenseManager.releaseExtractionLicense();
+                        byte[] fingerBytes = record.save().toByteArray();
+                        fp.setTemplate(Base64.encodeBase64String(fingerBytes));
+                        biometricSubject.addFingerprint(fp);
                     }
                 }
 
-                return new BiometricsTemplate(subject.getId(), format, Base64.encodeBase64String(templateBytes));
+                return biometricSubject;
             }
             else if (status != NBiometricStatus.ID_NOT_FOUND) {
                 throw new BiometricServiceException("An error occurred while looking up biometrics for subject. Status: " + status);
@@ -276,9 +275,34 @@ public class BiometricMatchingEngine {
     }
 
     /**
-     * Deletes the template associated with the given subjectId
+     * // TODO: This method is currently untested.  Here for reference only
      */
-    public void deleteTemplate(String subjectId) {
+    protected NSubject convertSubjectFromFormat(NSubject subject, BiometricTemplateFormat format) {
+        // Extracting a template in a format other than the default requires an extraction license
+        if (format != null && format != BiometricTemplateFormat.PROPRIETARY) {
+            try {
+                licenseManager.obtainExtractionLicense();
+                if (format == BiometricTemplateFormat.ISO) {
+                    subject.setTemplateBuffer(subject.getTemplateBuffer(
+                            CBEFFBiometricOrganizations.ISO_IEC_JTC_1_SC_37_BIOMETRICS,
+                            CBEFFBDBFormatIdentifiers.ISO_IEC_JTC_1_SC_37_BIOMETRICS_FINGER_MINUTIAE_RECORD_FORMAT,
+                            FMRecord.VERSION_ISO_CURRENT));
+                }
+                else {
+                    throw new BiometricServiceException("Unable to handle extract template in format: " + format);
+                }
+            }
+            finally {
+                licenseManager.releaseExtractionLicense();
+            }
+        }
+        return subject;
+    }
+
+    /**
+     * Deletes the subject associated with the given subjectId
+     */
+    public void deleteSubject(String subjectId) {
         log.debug("Deleting template for subject " + subjectId);
 
         NBiometricClient client = null;
@@ -341,17 +365,43 @@ public class BiometricMatchingEngine {
     }
 
     /**
-     * @return converts a Biometrics Template to an NSubject
+     * @return converts a BiometricSubject to an NSubject
+     * // TODO: Unclear how the type and format should be applied here
      */
-    private NSubject createSubject(BiometricsTemplate template) {
+    private NSubject createSubject(BiometricSubject biometricSubject) {
         NSubject subject = new NSubject();
-        if (template.getTemplate() != null) {
-            byte[] templateBytes = Base64.decodeBase64(template.getTemplate());
-            subject.setTemplateBuffer(new NBuffer(templateBytes));
+        NFTemplate compositeTemplate = null;
+        if (!biometricSubject.getFingerprints().isEmpty()) {
+            try {
+                compositeTemplate = new NFTemplate();
+                for (Fingerprint fp : biometricSubject.getFingerprints()) {
+                    if (fp.getTemplate() != null) {
+                        NTemplate template = null;
+                        try {
+                            byte[] templateBytes = Base64.decodeBase64(fp.getTemplate());
+                            template = new NTemplate(new NBuffer(templateBytes));
+                            if (template.getFingers() != null) {
+                                for (NFRecord record : template.getFingers().getRecords()) {
+                                    compositeTemplate.getRecords().add(record);
+                                }
+                            }
+                        }
+                        finally {
+                            dispose(template);
+                        }
+                    }
+                }
+                subject.setTemplateBuffer(compositeTemplate.save());
+            }
+            finally {
+                dispose(compositeTemplate);
+            }
         }
-        if (template.getSubjectId() != null) {
-            subject.setId(template.getSubjectId()); // This needs to come second, as setting template buffer resets this
+        // This needs to come last, or it gets reset
+        if (biometricSubject.getSubjectId() != null) {
+            subject.setId(biometricSubject.getSubjectId());
         }
+
         return subject;
     }
 

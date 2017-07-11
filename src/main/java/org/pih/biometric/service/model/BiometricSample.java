@@ -12,41 +12,38 @@ package org.pih.biometric.service.model;
 import java.io.Serializable;
 
 /**
- * Represents a template extraction of biometric data for a person,
- * which may include one or more fingerprints or other biometric modalities
- * The template is a String, which may be an encoded binary value
+ * Represents a sample of biometric data for a person
+ * type: represents an implementation-configurable representation of the given sample (eg. "LEFT_MIDDLE_FINGER")
+ * format: represents the standard used to represent the template, ISO, ANSI, etc
+ * template:  the textual representation of the sample, generally Base64 encoded binary data
  */
-public class BiometricsTemplate implements Serializable {
+public class BiometricSample implements Serializable {
 
-    public enum Format {
-        NEUROTECHNOLOGY, ISO, ANSI
-    }
-
-    private String subjectId;
-    private Format format;
+    private String type;
+    private BiometricTemplateFormat format;
     private String template;
 
-    public BiometricsTemplate() { }
+    public BiometricSample() { }
 
-    public BiometricsTemplate(String subjectId, Format format, String template) {
-        this.subjectId = subjectId;
+    public BiometricSample(String type, BiometricTemplateFormat format, String template) {
+        this.type = type;
         this.format = format;
         this.template = template;
     }
 
-    public String getSubjectId() {
-        return subjectId;
+    public String getType() {
+        return type;
     }
 
-    public void setSubjectId(String subjectId) {
-        this.subjectId = subjectId;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public Format getFormat() {
+    public BiometricTemplateFormat getFormat() {
         return format;
     }
 
-    public void setFormat(Format format) {
+    public void setFormat(BiometricTemplateFormat format) {
         this.format = format;
     }
 

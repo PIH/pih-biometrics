@@ -10,8 +10,8 @@
 package org.pih.biometric.service.web;
 
 import org.pih.biometric.service.api.BiometricMatchingEngine;
-import org.pih.biometric.service.model.BiometricsConfig;
-import org.pih.biometric.service.model.BiometricsStatus;
+import org.pih.biometric.service.model.BiometricConfig;
+import org.pih.biometric.service.model.BiometricStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class StatusController {
 
     @Autowired
-    BiometricsConfig config;
+    BiometricConfig config;
 
     @Autowired
     BiometricMatchingEngine engine;
@@ -36,8 +36,8 @@ public class StatusController {
      */
     @RequestMapping("/status")
     @ResponseBody
-    public BiometricsStatus status() {
-        BiometricsStatus status = new BiometricsStatus();
+    public BiometricStatus status() {
+        BiometricStatus status = new BiometricStatus();
         try {
             Integer numEnrolled = engine.getNumberEnrolled();
             status.setNumberEnrolled(numEnrolled);

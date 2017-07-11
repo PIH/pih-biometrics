@@ -12,12 +12,11 @@ package org.pih.biometric.service;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.pih.biometric.service.api.FingerprintScanningEngine;
-import org.pih.biometric.service.model.BiometricsMatch;
-import org.pih.biometric.service.model.BiometricsTemplate;
+import org.pih.biometric.service.model.BiometricMatch;
+import org.pih.biometric.service.model.BiometricSubject;
 import org.pih.biometric.service.model.Fingerprint;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,15 +35,17 @@ public class BiometricScanningEngineTest extends BaseBiometricTest {
     public void doTest() throws Exception {
 
         for (int i=0; i<numScans; i++) {
-            Fingerprint scan1 = scanningEngine.scanFingerprint();
-            BiometricsTemplate savedFp1 = matchingEngine.enroll(scan1);
+            BiometricSubject subject = new BiometricSubject();
+            subject.addFingerprint(scanningEngine.scanFingerprint());
+            BiometricSubject savedFp1 = matchingEngine.enroll(subject);
             System.out.println("Created: " + savedFp1.getSubjectId());
         }
 
         System.out.println("Number Enrolled: " + matchingEngine.getNumberEnrolled());
 
-        Fingerprint identificationScan = scanningEngine.scanFingerprint();
-        List<BiometricsMatch> matches = matchingEngine.identify(identificationScan);
+        BiometricSubject subject = new BiometricSubject();
+        subject.addFingerprint(scanningEngine.scanFingerprint());
+        List<BiometricMatch> matches = matchingEngine.identify(subject);
         System.out.println("Matched: " + matches);
     }
 
@@ -53,15 +54,21 @@ public class BiometricScanningEngineTest extends BaseBiometricTest {
 
         Fingerprint scan1 = scanningEngine.scanFingerprint();
         Fingerprint scan2 = scanningEngine.scanFingerprint();
-        BiometricsTemplate composite = scanningEngine.generateTemplate(Arrays.asList(scan1, scan2));
+        BiometricSubject composite = new BiometricSubject();
+        composite.addFingerprint(scan1);
+        composite.addFingerprint(scan2);
         matchingEngine.enroll(composite);
 
         System.out.println("Number Enrolled: " + matchingEngine.getNumberEnrolled());
 
-        List<BiometricsMatch> matches1 = matchingEngine.identify(scan1);
+        BiometricSubject id1 = new BiometricSubject();
+        id1.addFingerprint(scan1);
+        List<BiometricMatch> matches1 = matchingEngine.identify(id1);
         System.out.println("Matched scan 1: " + matches1);
 
-        List<BiometricsMatch> matches2 = matchingEngine.identify(scan2);
+        BiometricSubject id2 = new BiometricSubject();
+        id2.addFingerprint(scan2);
+        List<BiometricMatch> matches2 = matchingEngine.identify(id2);
         System.out.println("Matched scan 2: " + matches2);
     }
 }

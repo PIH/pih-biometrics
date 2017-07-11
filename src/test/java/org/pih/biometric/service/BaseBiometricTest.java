@@ -14,8 +14,10 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.pih.biometric.service.api.BiometricMatchingEngine;
-import org.pih.biometric.service.model.BiometricsConfig;
-import org.pih.biometric.service.model.BiometricsTemplate;
+import org.pih.biometric.service.model.BiometricConfig;
+import org.pih.biometric.service.model.BiometricSubject;
+import org.pih.biometric.service.model.BiometricTemplateFormat;
+import org.pih.biometric.service.model.Fingerprint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -58,7 +60,7 @@ public abstract class BaseBiometricTest {
     protected ObjectMapper objectMapper;
 
     @Autowired
-    protected BiometricsConfig config;
+    protected BiometricConfig config;
 
     @Before
     public void setup() throws Exception {
@@ -68,30 +70,35 @@ public abstract class BaseBiometricTest {
         }
         DB_FILE.createNewFile();
         DB_FILE.deleteOnExit();
-        loadTemplatesToDb();
+        loadSubjectsToDb();
     }
 
     /**
      * Sub-classes can override this method to load the database with initial templates
      */
-    protected List<BiometricsTemplate> loadTemplatesToDb() throws Exception {
+    protected List<BiometricSubject> loadSubjectsToDb() throws Exception {
         return new ArrayList<>();
     }
 
     /**
      * Convenience method to load a template string from the classpath
      */
-    protected BiometricsTemplate loadTemplateFromResource(String subjectId) throws Exception {
+    protected BiometricSubject loadSubjectFromResource(String subjectId) throws Exception {
         InputStream templateStream = getClass().getClassLoader().getResourceAsStream("org/pih/biometric/service/"+subjectId);
         String template = new String(IOUtils.toByteArray(templateStream));
-        return new BiometricsTemplate(subjectId, BiometricsTemplate.Format.NEUROTECHNOLOGY, template);
+        BiometricSubject subject = new BiometricSubject(subjectId);
+        Fingerprint fp = new Fingerprint();
+        fp.setFormat(BiometricTemplateFormat.PROPRIETARY);
+        fp.setTemplate(template);
+        subject.addFingerprint(fp);
+        return subject;
     }
 
     /**
      * Convenience method to load a template to the database from the classpath
      */
-    protected BiometricsTemplate loadTemplateToDb(String subjectId) throws Exception {
-        BiometricsTemplate template = loadTemplateFromResource(subjectId);
+    protected BiometricSubject loadSubjectToDb(String subjectId) throws Exception {
+        BiometricSubject template = loadSubjectFromResource(subjectId);
         return matchingEngine.enroll(template);
     }
 
@@ -100,13 +107,13 @@ public abstract class BaseBiometricTest {
     public static class TestConfig {
 
         @Bean
-        public BiometricsConfig getConfig() {
-            BiometricsConfig config = new BiometricsConfig();
+        public BiometricConfig getConfig() {
+            BiometricConfig config = new BiometricConfig();
             config.setMatchingServiceEnabled(true);
             config.setFingerprintScanningEnabled(true);
-            config.setMatchingSpeed(BiometricsConfig.MatchingSpeed.LOW);
+            config.setMatchingSpeed(BiometricConfig.MatchingSpeed.LOW);
             config.setMatchingThreshold(72);
-            config.setTemplateSize(BiometricsConfig.TemplateSize.LARGE);
+            config.setTemplateSize(BiometricConfig.TemplateSize.LARGE);
             config.setSqliteDatabasePath(DB_FILE.getAbsolutePath());
             List<File> licenseFiles = new ArrayList<>();
             if (LICENSE_DIR.exists()) {

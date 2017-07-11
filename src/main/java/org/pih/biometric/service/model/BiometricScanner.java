@@ -16,7 +16,7 @@ import java.io.Serializable;
 /**
  * Simple bean to encapsulate a Device capable of extracting a Biometric template
  */
-public class BiometricsScanner implements Serializable {
+public class BiometricScanner implements Serializable {
 
     private String id;
     private String displayName;
@@ -24,9 +24,9 @@ public class BiometricsScanner implements Serializable {
     private String model;
     private String serialNumber;
 
-    public BiometricsScanner() { }
+    public BiometricScanner() { }
 
-    public BiometricsScanner(NDevice device) {
+    public BiometricScanner(NDevice device) {
         this.id = device.getId();
         this.displayName = device.getDisplayName();
         this.make = device.getMake();

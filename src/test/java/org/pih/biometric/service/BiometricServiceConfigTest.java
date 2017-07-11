@@ -12,7 +12,7 @@ package org.pih.biometric.service;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.pih.biometric.service.model.BiometricsConfig;
+import org.pih.biometric.service.model.BiometricConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,10 +32,10 @@ public class BiometricServiceConfigTest extends BaseBiometricTest {
     @Test
     public void contextLoadsWithDefaults() throws Exception {
         Assert.assertNotNull(app);
-        BiometricsConfig config = app.getConfig();
+        BiometricConfig config = app.getConfig();
         assertThat(config.getMatchingThreshold(), is(72));
-        assertThat(config.getMatchingSpeed(), is(BiometricsConfig.MatchingSpeed.LOW));
-        assertThat(config.getTemplateSize(), is(BiometricsConfig.TemplateSize.LARGE));
+        assertThat(config.getMatchingSpeed(), is(BiometricConfig.MatchingSpeed.LOW));
+        assertThat(config.getTemplateSize(), is(BiometricConfig.TemplateSize.LARGE));
         assertThat(config.getLicenseFiles(), is(emptyCollectionOf(File.class)));
         assertThat(config.getSqliteDatabasePath(), isEmptyOrNullString());
     }

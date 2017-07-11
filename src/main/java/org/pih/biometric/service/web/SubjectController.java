@@ -11,7 +11,7 @@ package org.pih.biometric.service.web;
 
 import org.pih.biometric.service.api.BiometricMatchingEngine;
 import org.pih.biometric.service.exception.SubjectNotFoundException;
-import org.pih.biometric.service.model.BiometricsTemplate;
+import org.pih.biometric.service.model.BiometricSubject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,69 +27,69 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Provides web services for biometric templates
+ * Provides web services for biometric subjects
  */
 @RestController
 @CrossOrigin
-public class TemplateController {
+public class SubjectController {
 
     @Autowired
     BiometricMatchingEngine engine;
 
     /**
      * A POST operation is only meant to create, not update.  Duplicate subjects result in a conflict status
-     * @return saved template with subjectId populated
+     * @return saved subject with subjectId populated
      */
-    @RequestMapping(method = RequestMethod.POST, value = "/template")
+    @RequestMapping(method = RequestMethod.POST, value = "/subject")
     @ResponseBody
-    public BiometricsTemplate create(@RequestBody BiometricsTemplate template, HttpServletResponse response,  UriComponentsBuilder ucBuilder) {
-        template = engine.enroll(template);
-        response.addHeader(HttpHeaders.LOCATION, ucBuilder.path("/template/{subjectId}").buildAndExpand(template.getSubjectId()).toUriString());
+    public BiometricSubject create(@RequestBody BiometricSubject subject, HttpServletResponse response, UriComponentsBuilder ucBuilder) {
+        subject = engine.enroll(subject);
+        response.addHeader(HttpHeaders.LOCATION, ucBuilder.path("/subject/{subjectId}").buildAndExpand(subject.getSubjectId()).toUriString());
         response.setStatus(HttpStatus.CREATED.value());
-        return template;
+        return subject;
     }
 
     /**
      * A PUT operation is meant to either create or update
-     * @return saved template with subjectId populated
+     * @return saved subject with subjectId populated
      */
-    @RequestMapping(method = RequestMethod.PUT, value = "/template")
+    @RequestMapping(method = RequestMethod.PUT, value = "/subject")
     @ResponseBody
-    public BiometricsTemplate createOrUpdate(@RequestBody BiometricsTemplate template, HttpServletResponse response,  UriComponentsBuilder ucBuilder) {
-        if (template.getSubjectId() != null) {
-            BiometricsTemplate existingTemplate = engine.getTemplate(template.getSubjectId());
+    public BiometricSubject createOrUpdate(@RequestBody BiometricSubject subject, HttpServletResponse response, UriComponentsBuilder ucBuilder) {
+        if (subject.getSubjectId() != null) {
+            BiometricSubject existingTemplate = engine.getSubject(subject.getSubjectId());
             if (existingTemplate != null) {
-                return engine.update(template);
+                return engine.update(subject);
             }
         }
-        return create(template, response, ucBuilder);
+        return create(subject, response, ucBuilder);
     }
 
     /**
      * A GET operation is meant to return an existing resource
-     * @return saved template for the given subjectId
+     * @return saved subject for the given subjectId
      */
-    @RequestMapping(method = RequestMethod.GET, value = "/template/{subjectId}")
+    @RequestMapping(method = RequestMethod.GET, value = "/subject/{subjectId}")
     @ResponseBody
-    public BiometricsTemplate createOrUpdate(@PathVariable String subjectId) {
-        BiometricsTemplate template = engine.getTemplate(subjectId);
-        if (template == null) {
+    public BiometricSubject createOrUpdate(@PathVariable String subjectId) {
+        BiometricSubject subject = engine.getSubject(subjectId);
+        if (subject == null) {
             throw new SubjectNotFoundException(subjectId);
         }
-        return template;
+        return subject;
     }
 
     /**
      * A DELETE operation is meant to delete an existing resource
      * @return 204 No Content on success, 404 if subject cannot be found
      */
-    @RequestMapping(method = RequestMethod.DELETE, value = "/template/{subjectId}")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/subject/{subjectId}")
     @ResponseBody
     public void delete(@PathVariable String subjectId) {
-        BiometricsTemplate template = engine.getTemplate(subjectId);
-        if (template == null) {
+        BiometricSubject subject = engine.getSubject(subjectId);
+        if (subject == null) {
             throw new SubjectNotFoundException(subjectId);
         }
-        engine.deleteTemplate(subjectId);
+        engine.deleteSubject(subjectId);
     }
 }

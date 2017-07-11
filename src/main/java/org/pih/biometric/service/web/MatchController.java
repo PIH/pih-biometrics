@@ -10,8 +10,9 @@
 package org.pih.biometric.service.web;
 
 import org.pih.biometric.service.api.BiometricMatchingEngine;
-import org.pih.biometric.service.model.BiometricsMatch;
-import org.pih.biometric.service.model.BiometricsTemplate;
+import org.pih.biometric.service.model.BiometricMatch;
+import org.pih.biometric.service.model.BiometricSample;
+import org.pih.biometric.service.model.BiometricSubject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,14 +35,14 @@ public class MatchController {
     BiometricMatchingEngine engine;
 
     /**
-     * @return matches for the given template.  This is essentially a search for a template, with resulting possible matches
+     * @return matches for the given subject.  This is essentially a search for a template, with resulting possible matches
      */
     @RequestMapping(method = RequestMethod.POST, value = "/match")
     @ResponseBody
-    public List<BiometricsMatch> match(@RequestBody BiometricsTemplate template) {
-        List<BiometricsMatch> matches = new ArrayList<>();
-        if (template != null) {
-            matches = engine.identify(template);
+    public List<BiometricMatch> match(@RequestBody BiometricSubject subject) {
+        List<BiometricMatch> matches = new ArrayList<>();
+        if (subject != null) {
+            matches = engine.identify(subject);
         }
         return matches;
     }
