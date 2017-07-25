@@ -9,11 +9,14 @@
  */
 package org.pih.biometric.service;
 
+import org.apache.catalina.connector.Connector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.pih.biometric.service.model.BiometricConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +46,25 @@ public class BiometricService {
     @Bean
     public BiometricConfig getConfig() {
         return new BiometricConfig();
+    }
+
+    /**
+     * Enable an AJP connector if specified
+     */
+    @Bean
+    public EmbeddedServletContainerFactory servletContainer() {
+        TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
+        if (getConfig().getAjpPort() != null) {
+            Connector ajpConnector = new Connector("AJP/1.3");
+            ajpConnector.setProtocol("AJP/1.3");
+            ajpConnector.setPort(getConfig().getAjpPort());
+            ajpConnector.setSecure(false);
+            ajpConnector.setAllowTrace(false);
+            ajpConnector.setScheme("http");
+            tomcat.addAdditionalTomcatConnectors(ajpConnector);
+        }
+
+        return tomcat;
     }
 
     /**
