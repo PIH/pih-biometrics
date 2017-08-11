@@ -104,6 +104,7 @@ public class FingerprintScanningEngine {
      * Scans a fingerprint using the given device, associating with the finger(s) of the given type
      * If deviceId is null, but only one device is found, use that device
      */
+    // TODO make this synchronized?
     public Fingerprint scanFingerprint(String deviceId, String type) {
         log.debug("Scanning fingerprint from device: " + deviceId);
         NBiometricClient client = null;
@@ -174,8 +175,9 @@ public class FingerprintScanningEngine {
 
         }
         catch (Exception e) {
+            // TODO rework/tweak this?
             // we want to "soft" fail as much as possible
-            log.debug("caught exception");
+            log.debug("caught exception"); // TODO: remove or improve this log message
             try {
                 Thread.sleep(5000);
             }
