@@ -43,7 +43,9 @@ import java.util.List;
  */
 @Component
 public class FingerprintScanningEngine {
-	
+
+    static private final Integer TIMEOUT_IN_MS = 10000;
+
 	protected final Log log = LogFactory.getLog(this.getClass());
 
 	@Autowired
@@ -110,6 +112,7 @@ public class FingerprintScanningEngine {
         obtainLicense();
         try {
             client = createBiometricClient();
+            client.setTimeout(TIMEOUT_IN_MS);
 
             log.debug("Retrieving device");
             client.setUseDeviceManager(true);
@@ -142,29 +145,49 @@ public class FingerprintScanningEngine {
             subject.getFingers().add(finger);
 
             log.debug("Capturing fingerprint...");
-            NBiometricStatus status = client.capture(subject);
-            if (status != NBiometricStatus.OK) {
+
+            NBiometricStatus status = null;
+
+            status = client.capture(subject);
+
+            if (status == NBiometricStatus.OK) {
+                log.debug("Extracting template...");
+                status = client.createTemplate(subject);
+                if (status != NBiometricStatus.OK) {
+                    throw new BiometricServiceException("Error extracting template for fingerprint.  Status = " + status);
+                }
+
+                log.debug("Fingerprint captured successfully...");
+
+                Fingerprint fp = new Fingerprint();
+                fp.setTemplate(encode(subject.getTemplateBuffer().toByteArray()));
+                fp.setImage(encode(finger.getImage().save().toByteArray()));
+
+                return fp;
+            }
+            else if (status != NBiometricStatus.TIMEOUT) {
                 throw new BiometricServiceException("Error capturing fingerprint.  Status = " + status);
             }
-
-            log.debug("Extracting template...");
-            status = client.createTemplate(subject);
-            if (status != NBiometricStatus.OK) {
-                throw new BiometricServiceException("Error extracting template for fingerprint.  Status = " + status);
+            else {
+                return null;
             }
 
-            log.debug("Fingerprint captured successfully...");
+        }
+        catch (Exception e) {
+            // we want to "soft" fail as much as possible
+            log.debug("caught exception");
+            try {
+                Thread.sleep(5000);
+            }
+            catch (InterruptedException e2){}
+            return null;
 
-            Fingerprint fp = new Fingerprint();
-            fp.setTemplate(encode(subject.getTemplateBuffer().toByteArray()));
-            fp.setImage(encode(finger.getImage().save().toByteArray()));
-
-            return fp;
         }
         finally {
             releaseLicense();
             dispose(finger, subject, client);
         }
+
     }
 
     //***** CONVENIENCE METHODS *****
