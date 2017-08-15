@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.pih.biometric.service.exception.BiometricServiceException;
 import org.pih.biometric.service.exception.DeviceNotFoundException;
-import org.pih.biometric.service.exception.NonUniqueDeviceException;
 import org.pih.biometric.service.exception.ServiceNotEnabledException;
 import org.pih.biometric.service.model.BiometricConfig;
 import org.pih.biometric.service.model.BiometricScanner;
@@ -34,6 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -44,7 +45,7 @@ import java.util.List;
 @Component
 public class FingerprintScanningEngine {
 
-    static private final Integer TIMEOUT_IN_MS = 10000;
+    static private final Integer TIMEOUT_IN_MS = 5000;
 
 	protected final Log log = LogFactory.getLog(this.getClass());
 
@@ -54,89 +55,72 @@ public class FingerprintScanningEngine {
     @Autowired
     BiometricLicenseManager licenseManager;
 
+    NBiometricClient client = null;
+
+    NDeviceManager deviceManager = null;
+
+    @PostConstruct
+    public void init() {
+        obtainLicense();
+        createBiometricClient();
+        createDeviceManager();
+        initializeDevice();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        dispose(client, deviceManager);
+        releaseLicense();
+    }
+
+
     /**
      * Retrieves all connected Fingerprint Scanners
      */
-    public List<BiometricScanner> getFingerprintScanners() {
+    public synchronized List<BiometricScanner> getFingerprintScanners() {
         log.debug("Retrieving fingerprint scanners...");
         List<BiometricScanner> ret = new ArrayList<>();
-        NBiometricClient client = null;
-        obtainLicense();
-        try {
-            client = createBiometricClient();
-            client.setUseDeviceManager(true);
-            NDeviceManager deviceManager = client.getDeviceManager();
-            deviceManager.setDeviceTypes(EnumSet.of(NDeviceType.FINGER_SCANNER));
-            deviceManager.initialize();
-            for (NDevice device : deviceManager.getDevices()) {
-                BiometricScanner scanner = new BiometricScanner();
-                scanner.setId(device.getId());
-                scanner.setDisplayName(device.getDisplayName());
-                scanner.setMake(device.getMake());
-                scanner.setModel(device.getModel());
-                scanner.setSerialNumber(device.getSerialNumber());
-                ret.add(scanner);
-            }
-            return ret;
+        for (NDevice device : deviceManager.getDevices()) {
+            BiometricScanner scanner = new BiometricScanner();
+            scanner.setId(device.getId());
+            scanner.setDisplayName(device.getDisplayName());
+            scanner.setMake(device.getMake());
+            scanner.setModel(device.getModel());
+            scanner.setSerialNumber(device.getSerialNumber());
+            ret.add(scanner);
         }
-        finally {
-            releaseLicense();
-            dispose(client);
-        }
+        return ret;
     }
 
     /**
      * Scans a fingerprint.
      * Throws an exception if exactly one fingerprint reader is not found
      */
-    public Fingerprint scanFingerprint() {
-        return scanFingerprint(null, null);
+    public synchronized Fingerprint scanFingerprint() {
+        return scanFingerprint(null);
     }
 
-    /**
-     * Scans a fingerprint using the given device
-     */
-    public Fingerprint scanFingerprint(String deviceId) {
-        return scanFingerprint(deviceId, null);
-    }
 
     /**
      * Scans a fingerprint using the given device, associating with the finger(s) of the given type
      * If deviceId is null, but only one device is found, use that device
      */
-    // TODO make this synchronized?
-    public Fingerprint scanFingerprint(String deviceId, String type) {
-        log.debug("Scanning fingerprint from device: " + deviceId);
-        NBiometricClient client = null;
+    public synchronized Fingerprint scanFingerprint(String type) {
+
+        // if there's no device attached, try to find it, but if still no device fail
+        if (client.getFingerScanner() == null) {
+            initializeDevice();
+        }
+        if (client.getFingerScanner() == null) {
+            throw new DeviceNotFoundException();
+        }
+
+        log.debug("Scanning fingerprint from device");
+
         NSubject subject = null;
         NFinger finger = null;
-        obtainLicense();
+
         try {
-            client = createBiometricClient();
-            client.setTimeout(TIMEOUT_IN_MS);
-
-            log.debug("Retrieving device");
-            client.setUseDeviceManager(true);
-            NDeviceManager deviceManager = client.getDeviceManager();
-            deviceManager.setDeviceTypes(EnumSet.of(NDeviceType.FINGER_SCANNER));
-            deviceManager.initialize();
-            List<NDevice> devicesFound = new ArrayList<>();
-            for (NDevice device : deviceManager.getDevices()) {
-                if (deviceId == null || deviceId.equals(device.getId())) {
-                    devicesFound.add(device);
-                }
-            }
-            if (devicesFound.isEmpty()) {
-                throw new DeviceNotFoundException(deviceId);
-            }
-            if (devicesFound.size() > 1) {
-                throw new NonUniqueDeviceException();
-            }
-
-            NFScanner scanner = (NFScanner) devicesFound.get(0);
-            log.debug("Device found successfully: " + scanner.getId());
-
-            client.setFingerScanner(scanner);
             subject = new NSubject();
             finger = new NFinger();
             NFPosition position = getFingerPosition(type);
@@ -175,19 +159,12 @@ public class FingerprintScanningEngine {
 
         }
         catch (Exception e) {
-            // TODO rework/tweak this?
-            // we want to "soft" fail as much as possible
-            log.debug("caught exception"); // TODO: remove or improve this log message
-            try {
-                Thread.sleep(5000);
-            }
-            catch (InterruptedException e2){}
-            return null;
+            client.setFingerScanner(null);
+            throw new BiometricServiceException("Error capturing fingerprint:", e);
 
         }
         finally {
-            releaseLicense();
-            dispose(finger, subject, client);
+            dispose(finger, subject);
         }
 
     }
@@ -211,14 +188,40 @@ public class FingerprintScanningEngine {
     /**
      * @return Biometric client, configured with appropriate properties from configuration
      */
-    private NBiometricClient createBiometricClient() {
+    private void createBiometricClient() {
         if (!config.isFingerprintScanningEnabled()) {
             throw new ServiceNotEnabledException("Fingerprint Scanning");
         }
-        NBiometricClient client = new NBiometricClient();
+        client = new NBiometricClient();
+        client.setUseDeviceManager(true);
         client.setDatabaseConnectionToSQLite(config.getSqliteDatabasePath());
         client.setFingersTemplateSize(NTemplateSize.valueOf(config.getTemplateSize().name()));
-        return client;
+        client.setTimeout(TIMEOUT_IN_MS);
+    }
+
+    private void createDeviceManager() {
+        deviceManager = client.getDeviceManager();
+        deviceManager.setDeviceTypes(EnumSet.of(NDeviceType.FINGER_SCANNER));
+        deviceManager.initialize();
+    }
+
+    private void initializeDevice() {
+        log.debug("Retrieving device");
+        List<NDevice> devicesFound = deviceManager.getDevices();
+
+        if (devicesFound == null || devicesFound.isEmpty()) {
+            log.warn("Device not found");
+            return;
+        }
+        if (devicesFound.size() > 1) {
+            log.warn("Found multiple devices, using first found: " + devicesFound.get(0).getId());
+        }
+        else {
+            log.debug("Device found successfully: " + devicesFound.get(0).getId());
+        }
+
+        NFScanner scanner = (NFScanner) devicesFound.get(0);
+        client.setFingerScanner(scanner);
     }
 
     /**
@@ -236,6 +239,7 @@ public class FingerprintScanningEngine {
      */
     private void dispose(NObject... objects) {
         for (NObject o : objects) {
+            log.debug("Disposing of " + o);
             if (o != null) {
                 o.dispose();
             }

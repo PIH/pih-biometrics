@@ -9,9 +9,13 @@
  */
 package org.pih.biometric.service.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 /**
  * Represents an Exception occurs within the Biometric Service processing
  */
+@ResponseStatus(HttpStatus.CONFLICT)
 public class BiometricServiceException extends RuntimeException {
 
     public BiometricServiceException(String message) {

@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.CONFLICT)
 public class DeviceNotFoundException extends BiometricServiceException {
 
-    public DeviceNotFoundException(String deviceId) {
-        super("No matching device was found: " + deviceId);
+    public DeviceNotFoundException() {
+        super("No devices found");
     }
+
 }
