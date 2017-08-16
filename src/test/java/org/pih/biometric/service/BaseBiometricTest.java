@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 /**
  * Base test for biometrics functionality.
- * This requires valid neurotechnology component licenses to be placed in ${user.home}/.biometrics
+ * This requires valid neurotechnology component licenses to be placed in ${user.home}/.pih-biometrics
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {BaseBiometricTest.TestConfig.class})

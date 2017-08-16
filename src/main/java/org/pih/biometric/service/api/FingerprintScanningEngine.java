@@ -61,16 +61,20 @@ public class FingerprintScanningEngine {
 
     @PostConstruct
     public void init() {
-        obtainLicense();
-        createBiometricClient();
-        createDeviceManager();
-        initializeDevice();
+        if (config.isFingerprintScanningEnabled()) {
+            obtainLicense();
+            createBiometricClient();
+            createDeviceManager();
+            initializeDevice();
+        }
     }
 
     @PreDestroy
     public void destroy() {
-        dispose(client, deviceManager);
-        releaseLicense();
+        if (config.isFingerprintScanningEnabled()) {
+            dispose(client, deviceManager);
+            releaseLicense();
+        }
     }
 
 
@@ -94,18 +98,20 @@ public class FingerprintScanningEngine {
 
     /**
      * Scans a fingerprint.
-     * Throws an exception if exactly one fingerprint reader is not found
      */
-    public synchronized Fingerprint scanFingerprint() {
+    public Fingerprint scanFingerprint() {
         return scanFingerprint(null);
     }
 
 
     /**
      * Scans a fingerprint using the given device, associating with the finger(s) of the given type
-     * If deviceId is null, but only one device is found, use that device
      */
     public synchronized Fingerprint scanFingerprint(String type) {
+
+        if (!config.isFingerprintScanningEnabled()) {
+            throw new ServiceNotEnabledException("Fingerprint Scanning");
+        }
 
         // if there's no device attached, try to find it, but if still no device fail
         if (client.getFingerScanner() == null) {
@@ -189,9 +195,6 @@ public class FingerprintScanningEngine {
      * @return Biometric client, configured with appropriate properties from configuration
      */
     private void createBiometricClient() {
-        if (!config.isFingerprintScanningEnabled()) {
-            throw new ServiceNotEnabledException("Fingerprint Scanning");
-        }
         client = new NBiometricClient();
         client.setUseDeviceManager(true);
         client.setDatabaseConnectionToSQLite(config.getSqliteDatabasePath());
