@@ -23,8 +23,10 @@ import com.neurotec.lang.NObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.pih.biometric.service.exception.BadScanException;
 import org.pih.biometric.service.exception.BiometricServiceException;
 import org.pih.biometric.service.exception.DeviceNotFoundException;
+import org.pih.biometric.service.exception.DeviceTimeoutException;
 import org.pih.biometric.service.exception.ServiceNotEnabledException;
 import org.pih.biometric.service.model.BiometricConfig;
 import org.pih.biometric.service.model.BiometricScanner;
@@ -137,7 +139,7 @@ public class FingerprintScanningEngine {
 
             log.debug("Capturing fingerprint...");
 
-            NBiometricStatus status = null;
+            NBiometricStatus status;
 
             status = client.capture(subject);
 
@@ -145,7 +147,7 @@ public class FingerprintScanningEngine {
                 log.debug("Extracting template...");
                 status = client.createTemplate(subject);
                 if (status != NBiometricStatus.OK) {
-                    throw new BiometricServiceException("Error extracting template for fingerprint.  Status = " + status);
+                    throw new BadScanException("Error extracting template for fingerprint.  Status = " + status);
                 }
 
                 log.debug("Fingerprint captured successfully...");
@@ -156,13 +158,19 @@ public class FingerprintScanningEngine {
 
                 return fp;
             }
-            else if (status != NBiometricStatus.TIMEOUT) {
-                throw new BiometricServiceException("Error capturing fingerprint.  Status = " + status);
+            else if (status == NBiometricStatus.TIMEOUT) {
+                throw new DeviceTimeoutException();
             }
             else {
-                return null;
+                throw new BadScanException("Error capturing fingerprint.  Status = " + status);
             }
 
+        }
+        catch (DeviceTimeoutException e) {
+            throw e;
+        }
+        catch (BadScanException e) {
+            throw e;
         }
         catch (Exception e) {
             client.setFingerScanner(null);

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Represents an exception that occurs when it is unclear which device to use for a given operation
  */
-@ResponseStatus(HttpStatus.CONFLICT)
+@ResponseStatus(HttpStatus.NOT_FOUND)
 public class DeviceNotFoundException extends BiometricServiceException {
 
     public DeviceNotFoundException() {

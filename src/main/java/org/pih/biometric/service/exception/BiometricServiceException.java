@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Represents an Exception occurs within the Biometric Service processing
  */
-@ResponseStatus(HttpStatus.CONFLICT)
+@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 public class BiometricServiceException extends RuntimeException {
 
     public BiometricServiceException(String message) {
