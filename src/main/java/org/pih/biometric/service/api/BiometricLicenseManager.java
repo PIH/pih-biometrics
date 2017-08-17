@@ -133,6 +133,7 @@ public class BiometricLicenseManager {
         catch (IOException e) {
             throw new BiometricServiceException("Unable to obtain a license for " + component, e);
         }
+        log.debug("Obtained license for component: " + component);
     }
 
     /**
