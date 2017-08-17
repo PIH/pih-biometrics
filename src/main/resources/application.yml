@@ -1,7 +1,7 @@
 # Default values for biometric client configuration
 
-matchingServiceEnabled: "false"
-fingerprintScanningEnabled: "false"
+matchingServiceEnabled: false
+fingerprintScanningEnabled: true
 
 matchingThreshold: "72"
 matchingSpeed: "LOW"

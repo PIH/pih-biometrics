@@ -1,5 +1,5 @@
-matchingServiceEnabled: "true"
-fingerprintScanningEnabled: "true"
+matchingServiceEnabled: false
+fingerprintScanningEnabled: false
 
 matchingThreshold: "72"
 matchingSpeed: "LOW"
