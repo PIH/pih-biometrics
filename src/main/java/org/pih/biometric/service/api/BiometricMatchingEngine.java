@@ -37,6 +37,7 @@ import org.pih.biometric.service.model.BiometricSubject;
 import org.pih.biometric.service.model.BiometricTemplateFormat;
 import org.pih.biometric.service.model.Fingerprint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -51,6 +52,7 @@ import java.util.UUID;
  * Component that enables interaction with the biometric matching service, including enrollment, matching, and retrieval of templates
  */
 @Component
+@DependsOn("biometricLicenseManager")
 public class BiometricMatchingEngine {
 	
 	protected final Log log = LogFactory.getLog(this.getClass());

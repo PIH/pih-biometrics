@@ -32,6 +32,7 @@ import org.pih.biometric.service.model.BiometricConfig;
 import org.pih.biometric.service.model.BiometricScanner;
 import org.pih.biometric.service.model.Fingerprint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -45,6 +46,7 @@ import java.util.List;
  * Component that enables interaction with the devices for scanning and extracting biometric templates
  */
 @Component
+@DependsOn("biometricLicenseManager")
 public class FingerprintScanningEngine {
 
     static private final Integer TIMEOUT_IN_MS = 5000;
@@ -63,6 +65,7 @@ public class FingerprintScanningEngine {
 
     @PostConstruct
     public void init() {
+        log.info("Initializing fingerprint scanning engine");
         if (config.isFingerprintScanningEnabled()) {
             obtainLicense();
             createBiometricClient();
