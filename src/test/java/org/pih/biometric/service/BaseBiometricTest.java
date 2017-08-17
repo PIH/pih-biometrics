@@ -110,7 +110,7 @@ public abstract class BaseBiometricTest {
         public BiometricConfig getConfig() {
             BiometricConfig config = new BiometricConfig();
             config.setMatchingServiceEnabled(true);
-            config.setFingerprintScanningEnabled(true);
+            config.setFingerprintScanningEnabled(false);
             config.setMatchingSpeed(BiometricConfig.MatchingSpeed.LOW);
             config.setMatchingThreshold(72);
             config.setTemplateSize(BiometricConfig.TemplateSize.LARGE);

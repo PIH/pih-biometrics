@@ -22,7 +22,8 @@ import java.util.List;
 /**
  * We ignore this test for now.  Ideally we would get proper mocking of the Neurotechnology
  * devices and scanning set up, but for now we run this manually on demand to sanity check things.
- */
+ * Will need to set the mock config to enable fingerprint scanning (enabled this currently causes a core dump involving a usb library, assumedly, because it doesn't have any USB ports)
+ **/
 @Ignore
 public class BiometricScanningEngineTest extends BaseBiometricTest {
 
