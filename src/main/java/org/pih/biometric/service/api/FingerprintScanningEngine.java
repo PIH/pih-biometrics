@@ -84,7 +84,13 @@ public class FingerprintScanningEngine {
      * Retrieves all connected Fingerprint Scanners
      */
     public synchronized List<BiometricScanner> getFingerprintScanners() {
+
+        if (!config.isFingerprintScanningEnabled()) {
+            throw new ServiceNotEnabledException("Fingerprint Scanning");
+        }
+
         log.debug("Retrieving fingerprint scanners...");
+
         List<BiometricScanner> ret = new ArrayList<>();
         for (NDevice device : deviceManager.getDevices()) {
             BiometricScanner scanner = new BiometricScanner();
