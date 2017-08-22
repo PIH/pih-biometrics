@@ -64,18 +64,22 @@ public class FingerprintScanningEngine {
     @PostConstruct
     public void init() {
         if (config.isFingerprintScanningEnabled()) {
+            log.debug("Started fingerprint scanning engine initialization...");
             obtainLicense();
             createBiometricClient();
             createDeviceManager();
-            initializeDevice();
+            //initializeDevice();
+            log.debug("Completed fingerprint scanning engine initialization...");
         }
     }
 
     @PreDestroy
     public void destroy() {
         if (config.isFingerprintScanningEnabled()) {
+            log.debug("Started fingerprint scanning engine destroy...");
             dispose(client, deviceManager);
             releaseLicense();
+            log.debug("Ended fingerprint scanning engine destroy...");
         }
     }
 
@@ -124,9 +128,9 @@ public class FingerprintScanningEngine {
         // if there's no device attached, try to find it, but if still no device fail
         if (client.getFingerScanner() == null) {
             initializeDevice();
-        }
-        if (client.getFingerScanner() == null) {
-            throw new DeviceNotFoundException();
+            if (client.getFingerScanner() == null) {
+                throw new DeviceNotFoundException();
+            }
         }
 
         log.debug("Scanning fingerprint from device");
