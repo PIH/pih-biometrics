@@ -150,6 +150,7 @@ Represents a query to retrieve potential matches for a given template
 * GET /fingerprint/scan
 
 **Scan a fingerprint from a specific device by device id**
+** TODO: currently not implemented--engine always uses "first" scanner it finds if multiple present **
 * GET /fingerprint/scan?deviceId={deviceId}
 
 These services operate on the following object representations:
