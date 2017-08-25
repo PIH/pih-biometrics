@@ -63,6 +63,7 @@ public class BiometricMatchingEngine {
 
     /**
      * On startup, we ensure licenses are appropriately added and the server is available
+     * TODO: do we want to obtain licenses on startup as well, as we now have the scanning engine do?
      */
     @PostConstruct
     public void startup() {
