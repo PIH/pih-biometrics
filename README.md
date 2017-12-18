@@ -4,6 +4,13 @@ PIH Biometrics
 This is a lightweight application that exposes REST web services for all core biometric operations.
 This utilizes the Neurotechnology VeriFinger SDK and currently is geared towards supporting fingerprints.
 
+# Overview
+
+An overview of our current Biometrics design can be found here:
+
+https://talk.openmrs.org/t/biometrics-implementation-in-openmrs/14596/4
+
+
 # Developer Installation
 
 * Ensure you have the VeriFinger Extended SDK installed
