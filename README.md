@@ -184,13 +184,20 @@ Represents the scanned fingerprint retrieved from the scan endpoint.
 }
 ```
 
+# Deployment
+
+For deploying, we have created a "biometric-client-package" that can be installed on client machines, and have
+written an Ansible playbook for setting up the server component. These should be used when setting up clients and
+servers.  Details can be found in the README of the the "biometric-client-package" on Bitbucket:
+
+https://bitbucket.org/partnersinhealth/biometrics-client-package
+
 # TODO
 
 * Determine if we want to assign UUIDs as our main means of subjectId generation.  Do we want to allow specifying subjectId by the user?
 * Determine if we want to allow multiple templates per subject, or to expose additional methods to add/delete/update various modalities.
 * Determine if we want to associate additional demographic data to allow for faster queries, or if this can come later as needed
 * Potentially support additional database engines (eg. MySQL)
-* Ensure this can work with a non-internet license
 * Determine if the template format should be the responsibility of the server, or should it simply store and match what it is given
 * Should information around the template format be stored along with the template?
 * Should we simply support importing/exporting in ISO format as needed for integration?
