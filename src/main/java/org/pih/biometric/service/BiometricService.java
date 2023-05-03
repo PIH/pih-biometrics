@@ -9,6 +9,9 @@
  */
 package org.pih.biometric.service;
 
+import com.neurotec.devices.NDevice;
+import com.neurotec.devices.NDeviceManager;
+import com.neurotec.devices.NDeviceType;
 import org.apache.catalina.connector.Connector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -19,11 +22,13 @@ import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.util.EnumSet;
 
 /**
  * This is the main class that starts up the application.
@@ -80,6 +85,15 @@ public class BiometricService {
         log.info("JAVA VERSION: " + runtimeMxBean.getSpecVersion() + " (" + runtimeMxBean.getVmVersion() + ")");
         log.info("JAVA_OPTS: " + runtimeMxBean.getInputArguments());
 
-        SpringApplication.run(BiometricService.class, args);
+        ApplicationContext ctx = SpringApplication.run(BiometricService.class, args);
+
+        NDeviceManager dm = new NDeviceManager();
+        dm.setDeviceTypes(EnumSet.of(NDeviceType.ANY));
+        dm.initialize();
+        for (NDevice device : dm.getDevices()) {
+            System.out.println("Device found: " + device.getDisplayName());
+        }
+
+        SpringApplication.exit(ctx);
 	}
 }

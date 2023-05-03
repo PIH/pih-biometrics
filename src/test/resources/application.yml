@@ -4,6 +4,7 @@ fingerprintScanningEnabled: false
 matchingThreshold: "72"
 matchingSpeed: "LOW"
 templateSize: "LARGE"
+minimumFingerprintQuality: "200"
 
 logging:
   level:

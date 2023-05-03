@@ -11,6 +11,7 @@ package org.pih.biometric.service.api;
 
 import com.neurotec.biometrics.NBiometricStatus;
 import com.neurotec.biometrics.NFPosition;
+import com.neurotec.biometrics.NFRecord;
 import com.neurotec.biometrics.NFinger;
 import com.neurotec.biometrics.NSubject;
 import com.neurotec.biometrics.NTemplateSize;
@@ -162,6 +163,15 @@ public class FingerprintScanningEngine {
 
                 log.debug("Fingerprint captured successfully...");
 
+                Short fpQuality = getMinimumFingerprintQuality(subject);
+                log.debug("Fingerprint quality is: " + fpQuality);
+
+                if (config.getMinimumFingerprintQuality() != null) {
+                    if (fpQuality == null || fpQuality < config.getMinimumFingerprintQuality()) {
+                        throw new BadScanException("Fingerprint captured with insufficient quality (" + fpQuality + " / " + config.getMinimumFingerprintQuality() + ")");
+                    }
+                }
+
                 Fingerprint fp = new Fingerprint();
                 fp.setTemplate(encode(subject.getTemplateBuffer().toByteArray()));
                 fp.setImage(encode(finger.getImage().save().toByteArray()));
@@ -253,6 +263,21 @@ public class FingerprintScanningEngine {
             return null;
         }
         return NFPosition.valueOf(type);
+    }
+
+    private Short getMinimumFingerprintQuality(NSubject subject) {
+        Short lowestQuality = null;
+        try {
+            for (NFRecord record : subject.getTemplate().getFingers().getRecords()) {
+                if (lowestQuality == null || lowestQuality > record.getQuality()) {
+                    lowestQuality = record.getQuality();
+                }
+            }
+        }
+        catch (Exception e) {
+            log.error("Error extracting minimum fingerprint quality: ", e);
+        }
+        return lowestQuality;
     }
 
     /**

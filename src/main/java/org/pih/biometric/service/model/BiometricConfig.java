@@ -36,6 +36,7 @@ public class BiometricConfig implements Serializable {
     private Integer matchingThreshold;
     private MatchingSpeed matchingSpeed;
     private TemplateSize templateSize;
+    private Short minimumFingerprintQuality;
     private Integer ajpPort;
 
     // ***** PROPERTY ACCESS *****
@@ -101,6 +102,14 @@ public class BiometricConfig implements Serializable {
 
     public void setTemplateSize(TemplateSize templateSize) {
         this.templateSize = templateSize;
+    }
+
+    public Short getMinimumFingerprintQuality() {
+        return minimumFingerprintQuality;
+    }
+
+    public void setMinimumFingerprintQuality(Short minimumFingerprintQuality) {
+        this.minimumFingerprintQuality = minimumFingerprintQuality;
     }
 
     public Integer getAjpPort() {

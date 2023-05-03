@@ -56,9 +56,10 @@ This configuration file can be located anywhere on one's system, and supports th
 ```yaml
 matchingServiceEnabled: "false"
 fingerprintScanningEnabled: "true"
-matchingThreshold:  72,
-matchingSpeed:  "LOW",
-templateSize: "LARGE",
+matchingThreshold:  72
+matchingSpeed:  "LOW"
+templateSize: "LARGE"
+minimumFingerprintQuality: 200
 sqliteDatabasePath: "/opt/pih-biometrics/data/biometrics.db"
 licenseFiles:
   - "/opt/pih-biometrics/licenses/Zanmi_Lasante_internet_license_12312665236124965265.lic"
@@ -71,7 +72,8 @@ The server can be configured to support 2 modes:
 One or both of these can be enabled or disabled by adjusting the _matchingServiceEnabled_ and _fingerprintScanningEnabled_ properties.
 To ease client installation, by default these are set up to enable fingerprint scanning only.
 
-The _matchingThreshold_, _matchingSpeed_, and _templateSize_ settings are all optional.  If they are not supplied, they will receive default values (which are the same as those shown above).
+The _matchingThreshold_, _matchingSpeed_, _templateSize_, and _minimumFingerprintQuality_ settings are all optional.  
+If they are not supplied, they will receive default values (which are the same as those shown above).
 
 If the _sqliteDatabasePath_ is specified, this indicates to the server that Sqlite should be used as the underlying database, and should be stored at the given location.
 **NOTE**: This database will be created if it does not yet exist
