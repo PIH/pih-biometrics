@@ -27,7 +27,7 @@ Create a top-level directory for the application (eg. `/opt/pih-biometrics`).  C
 
 Add a `bin` subdirectory and add the `pih-biometrics-X.Y.Z.jar` file to it.  To obtain this jar file:
 
-1. Download specific version from Maven (TODO: specify location)
+1. Download specific version from [Maven](https://s01.oss.sonatype.org/index.html#nexus-search;quick~pih-biometrics)
 2. Grab specific version from an existing installation/server
 3. Build from source (see Developer instructions below)
 
