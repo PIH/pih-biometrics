@@ -113,7 +113,7 @@ java \
 
 ## Installing the Neurotechnology SDK
 
-In order to build this project, one needs to have the Neurotechnology SDK installed in order to use it to install the library dependencies into the local Maven repository.  
+In order to build this project, one needs to have the Neurotechnology SDK installed in order to use it to install the library dependencies into the local Maven repository.
 
 * Download the Verifinger Extended SDK from http://www.neurotechnology.com (or other suitable source)
 * Unzip this into a suitable location (eg. `/opt/Neurotec_Biometric_9_0_SDK`)
@@ -126,9 +126,10 @@ If one has the Neurotechnology SDK installed, one can also use it as the source 
 To build from source, one first needs to follow the steps above under `Installing the Neurotechnology SDK`.  Once this is complete, building requires the following steps:
 
 * Create a directory at `~/.pih-biometrics`, and add valid Neurotechnology license files to this directory
-* Build with Maven, setting the `jna.library.path` as appropriate per the above step.
+* Ensure your Neurotechnology SDK is installed at `/opt/Neurotec_Biometric_9_0_SDK` or create a symbolic link to it at this location
+* Build with Maven
 
-```mvn clean install -Djna.library.path=/opt/Neurotec_Biometric_9_0_SDK/Lib/Linux_x86_64/```
+(Alternatively, you can specify the location of the SDK libraries needed as follows: `-DneuroTechLibPath=/my/path/to/Neurotec_Biometric_9_0_SDK/Lib/Linux_x86_64/`)
 
 # Running the Server
 

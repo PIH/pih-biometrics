@@ -20,6 +20,7 @@
 
     <properties>
         <neurotecVersion>9.0.0.0</neurotecVersion>
+        <neurotecLibPath>/opt/Neurotec_Biometric_9_0_SDK/Lib/Linux_x86_64</neurotecLibPath>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
@@ -149,6 +150,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <forkMode>once</forkMode>
+                    <argLine>-Djna.library.path=${neurotecLibPath}</argLine>
                 </configuration>
             </plugin>
         </plugins>
