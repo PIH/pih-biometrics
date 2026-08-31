@@ -1,13 +1,13 @@
-name: Build and deploy
+name: Release new version
 
 on:
-  push:
-    branches: [master]
   workflow_dispatch:
 
 jobs:
-  build-and-publish:
+  release:
     if: github.repository_owner == 'PIH'
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,6 +18,11 @@ jobs:
           distribution: 'temurin'
           java-version: 8
           cache: 'maven'
+
+      - name: Setup Git Config
+        run: |
+          git config user.name "Github Action"
+          git config user.email "github-action@users.noreply.github.com"
 
       - name: Configure Maven settings
         run: |
@@ -39,7 +44,20 @@ jobs:
           </settings>
           EOF
 
-      - name: Build and deploy
+      - name: Release prepare and perform
+        run: mvn -B release:prepare release:perform -Prelease --file pom.xml
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GHA_WRITE_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.SONATYPE_GPG_PASSPHRASE }}
+          MAVEN_GPG_KEY: ${{ secrets.SONATYPE_GPG_PRIVATE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
+
+      # release:prepare bumps the working copy to the next SNAPSHOT and pushes that commit, but
+      # never deploys that snapshot itself - deploy it explicitly so it's available right away.
+      - name: Deploy next development version
         run: mvn -B clean deploy
         env:
           GITHUB_ACTOR: ${{ github.actor }}
