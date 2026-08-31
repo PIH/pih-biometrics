@@ -1,0 +1,29 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    if: github.repository_owner == 'PIH'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 8
+          cache: 'maven'
+          server-id: github-pih-artifacts
+          server-username: GITHUB_ACTOR
+          server-password: GHA_WRITE_TOKEN
+
+      - name: Build and deploy
+        run: mvn -B clean deploy
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GHA_WRITE_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
