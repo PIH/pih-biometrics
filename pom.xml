@@ -137,6 +137,24 @@
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <configuration>
+                        <tagNameFormat>@{project.version}</tagNameFormat>
+                        <projectVersionPolicyId>SemVerVersionPolicy</projectVersionPolicyId>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>3.2.7</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -153,23 +171,30 @@
                     <argLine>-Djna.library.path=${neurotecLibPath}</argLine>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.7.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                    <waitUntil>published</waitUntil>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
+    <repositories>
         <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>github-pih-artifacts</id>
+            <url>https://maven.pkg.github.com/PIH/pih-artifacts</url>
         </repository>
-    </distributionManagement>
+    </repositories>
 
     <profiles>
         <profile>
-            <id>release-sign-artifacts</id>
+            <id>release</id>
             <activation>
                 <property>
                     <name>deployRelease</name>
@@ -179,17 +204,14 @@
             <build>
                 <plugins>
                     <!--
-                    To deploy non-snapshot versions to Sonatype, signatures must be generated using gpg
-                    Note that gpg2 key must exist on Bamboo server and the key and passphrase can be
-                    passed on the command line.
-                    Instructions for creating a key:
-                    https://central.sonatype.org/pages/working-with-pgp-signatures.html
-                    Command to run: clean deploy -U -DdeployRelease -Dgpg.passphrase=*** -Dgpg.keyname=[email_address_associated_with_generated_key]
+                    To deploy non-snapshot versions to Sonatype Central, signatures must be generated using gpg.
+                    The "bc" signer is a pure-Java (Bouncy Castle) implementation that can sign using an in-memory
+                    key/passphrase (eg. via MAVEN_GPG_KEY / MAVEN_GPG_PASSPHRASE env vars), without needing a
+                    gpg binary or keyring present on the build machine.
                     -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.0.1</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -197,6 +219,9 @@
                                 <goals>
                                     <goal>sign</goal>
                                 </goals>
+                                <configuration>
+                                    <signer>bc</signer>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

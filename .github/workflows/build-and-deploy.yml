@@ -1,0 +1,50 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    if: github.repository_owner == 'PIH'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 8
+          cache: 'maven'
+
+      - name: Configure Maven settings
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<'EOF'
+          <settings>
+            <servers>
+              <server>
+                <id>github-pih-artifacts</id>
+                <username>${env.GITHUB_ACTOR}</username>
+                <password>${env.GHA_WRITE_TOKEN}</password>
+              </server>
+              <server>
+                <id>central</id>
+                <username>${env.SONATYPE_USERNAME}</username>
+                <password>${env.SONATYPE_PASSWORD}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      # Tests require the real Neurotec native libraries and a valid license file, neither of
+      # which belong on a shared hosted runner - see README for how to run them locally.
+      - name: Build and deploy
+        run: mvn -B clean deploy -Dmaven.test.skip=true
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GHA_WRITE_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}

@@ -1,0 +1,68 @@
+name: Release new version
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    if: github.repository_owner == 'PIH'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 8
+          cache: 'maven'
+
+      - name: Setup Git Config
+        run: |
+          git config user.name "Github Action"
+          git config user.email "github-action@users.noreply.github.com"
+
+      - name: Configure Maven settings
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<'EOF'
+          <settings>
+            <servers>
+              <server>
+                <id>github-pih-artifacts</id>
+                <username>${env.GITHUB_ACTOR}</username>
+                <password>${env.GHA_WRITE_TOKEN}</password>
+              </server>
+              <server>
+                <id>central</id>
+                <username>${env.SONATYPE_USERNAME}</username>
+                <password>${env.SONATYPE_PASSWORD}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      # Tests require the real Neurotec native libraries and a valid license file, neither of
+      # which belong on a shared hosted runner - see README for how to run them locally.
+      - name: Release prepare and perform
+        run: mvn -B -DpreparationGoals=clean -Darguments="-Dmaven.test.skip=true" release:prepare release:perform -Prelease --file pom.xml
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GHA_WRITE_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.SONATYPE_GPG_PASSPHRASE }}
+          MAVEN_GPG_KEY: ${{ secrets.SONATYPE_GPG_PRIVATE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
+
+      # release:prepare bumps the working copy to the next SNAPSHOT and pushes that commit, but
+      # never deploys that snapshot itself - deploy it explicitly so it's available right away.
+      - name: Deploy next development version
+        run: mvn -B clean deploy -Dmaven.test.skip=true
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GHA_WRITE_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}

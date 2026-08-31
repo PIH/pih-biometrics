@@ -27,7 +27,7 @@ Create a top-level directory for the application (eg. `/opt/pih-biometrics`).  C
 
 Add a `bin` subdirectory and add the `pih-biometrics-X.Y.Z.jar` file to it.  To obtain this jar file:
 
-1. Download specific version from [Maven](https://s01.oss.sonatype.org/index.html#nexus-search;quick~pih-biometrics)
+1. Download specific version from [Maven Central](https://central.sonatype.com/artifact/org.pih/pih-biometrics)
 2. Grab specific version from an existing installation/server
 3. Build from source (see Developer instructions below)
 
@@ -131,25 +131,57 @@ java \
 
 # Developer Installation
 
-## Installing the Neurotechnology SDK
+## The Neurotechnology SDK and PIH/pih-artifacts
 
-In order to build this project, one needs to have the Neurotechnology SDK installed in order to use it to install the library dependencies into the local Maven repository.
+This project depends on the proprietary Neurotechnology VeriFinger Extended SDK, which isn't available on Maven Central. To avoid every developer/build machine needing the full SDK installed locally, the SDK's **Java libraries** (`com.neurotec:*` and `net.java.dev.jna:jna:4.2.2-Neurotec`) are pre-published as ordinary Maven artifacts to [`PIH/pih-artifacts`](https://github.com/PIH/pih-artifacts), a private GitHub Packages Maven registry. This project's `pom.xml` already lists that registry as a `<repository>`, so Maven resolves those dependencies from there automatically - no SDK installation needed just to **compile**.
 
-* Download the Verifinger Extended SDK from http://www.neurotechnology.com (or other suitable source)
+`PIH/pih-artifacts` also hosts the complete SDK installer as a private GitHub Release, as a fallback in case it's ever no longer available directly from Neurotechnology.
+
+Note this only covers compiling: `NBiometricClient` and related classes are backed by native libraries (loaded via JNA), so **running or testing** this application for real still requires the actual native libraries from the SDK's `Lib` subdirectory to be present locally, pointed to via `-Djna.library.path` (see below) - vendoring the Java jars doesn't remove that requirement.
+
+**To resolve dependencies from `pih-artifacts` locally**, add a server entry to your own `~/.m2/settings.xml` with a GitHub token that has `read:packages` scope and access to `PIH/pih-artifacts`:
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>github-pih-artifacts</id>
+      <username>YOUR_GITHUB_USERNAME</username>
+      <password>YOUR_GITHUB_TOKEN</password>
+    </server>
+  </servers>
+</settings>
+```
+
+**If you need the native libraries** (to actually run/test the app, or if you need Neurotec SDK components beyond the vendored Java jars), install the full SDK:
+
+* Download the Verifinger Extended SDK from http://www.neurotechnology.com (or grab the archived copy from [`PIH/pih-artifacts`](https://github.com/PIH/pih-artifacts/releases) if unavailable)
 * Unzip this into a suitable location (eg. `/opt/Neurotec_Biometric_9_0_SDK`)
-* Open a terminal, navigate into this directory, and run `mvn clean install` to install the appropriate jars
 
-If one has the Neurotechnology SDK installed, one can also use it as the source of the libraries needed to run the application.  These libraries are contained in the `Lib` subdirectory, divided by operating system.  To use these, you would simply need to ensure that the `-Djna.library.path` points to the appropriate subdirectory when the application is started.  This is also required to build and test the application.  For example:  `-Djna.library.path=/opt/Neurotec_Biometric_9_0_SDK/Lib/Linux_x86_64`
+The native libraries are contained in the `Lib` subdirectory, divided by operating system. Point `-Djna.library.path` at the appropriate subdirectory when running or testing the application, for example: `-Djna.library.path=/opt/Neurotec_Biometric_9_0_SDK/Lib/Linux_x86_64`
+
+(If you'd rather install the SDK's Java jars into your own local Maven repository instead of resolving them from `pih-artifacts`, that's still possible the old way too: navigate into the unzipped SDK directory and run `mvn clean install`.)
 
 ### Building from source
 
-To build from source, one first needs to follow the steps above under `Installing the Neurotechnology SDK`.  Once this is complete, building requires the following steps:
+To just compile the project, the vendored jars in `pih-artifacts` are enough - no local SDK installation is required (see above). To actually run the application or its tests, which exercise the real native Neurotec libraries, you'll also need:
 
-* Create a directory at `~/.pih-biometrics`, and add valid Neurotechnology license files to this directory
-* Ensure your Neurotechnology SDK is installed at `/opt/Neurotec_Biometric_9_0_SDK` or create a symbolic link to it at this location
+* A directory at `~/.pih-biometrics`, with valid Neurotechnology license files added to it
+* The Neurotechnology SDK installed at `/opt/Neurotec_Biometric_9_0_SDK` (or a symbolic link to it at this location)
 * Build with Maven
 
 (Alternatively, you can specify the location of the SDK libraries needed as follows: `-DneuroTechLibPath=/my/path/to/Neurotec_Biometric_9_0_SDK/Lib/Linux_x86_64/`)
+
+## Continuous Integration and Releases
+
+Builds run in GitHub Actions on standard hosted runners - no self-hosted infrastructure is needed, since Neurotec's Java libraries are resolved from `pih-artifacts` rather than requiring the SDK on the build machine:
+
+* `.github/workflows/build-and-deploy.yml` builds and deploys a snapshot on every push to `master`
+* `.github/workflows/release.yml` (manually triggered) cuts a tagged release, then bumps and deploys the next snapshot
+
+Both publish to Maven Central (via `central-publishing-maven-plugin`), same as before; `pih-artifacts` is only used here for resolving the Neurotec dependencies, not for publishing this project's own artifacts.
+
+Both workflows skip tests (`-Dmaven.test.skip=true`). The test suite exercises the real Neurotec matching engine (`NBiometricClient`, `NLicense`), which requires the native SDK libraries and a valid Neurotec license file - neither of which belong on a shared hosted runner. Run tests locally instead, with the SDK installed as described above.
 
 # Running the Server
 
