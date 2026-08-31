@@ -39,8 +39,10 @@ jobs:
           </settings>
           EOF
 
+      # Tests require the real Neurotec native libraries and a valid license file, neither of
+      # which belong on a shared hosted runner - see README for how to run them locally.
       - name: Build and deploy
-        run: mvn -B clean deploy
+        run: mvn -B clean deploy -Dmaven.test.skip=true
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GHA_WRITE_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}

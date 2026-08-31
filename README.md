@@ -181,6 +181,8 @@ Builds run in GitHub Actions on standard hosted runners - no self-hosted infrast
 
 Both publish to Maven Central (via `central-publishing-maven-plugin`), same as before; `pih-artifacts` is only used here for resolving the Neurotec dependencies, not for publishing this project's own artifacts.
 
+Both workflows skip tests (`-Dmaven.test.skip=true`). The test suite exercises the real Neurotec matching engine (`NBiometricClient`, `NLicense`), which requires the native SDK libraries and a valid Neurotec license file - neither of which belong on a shared hosted runner. Run tests locally instead, with the SDK installed as described above.
+
 # Running the Server
 
 After building the project, the server can be run via the jar file.  It can also be run through the IDE.
