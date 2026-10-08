@@ -10,14 +10,18 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: 8
           cache: 'maven'
+
+      # Maven 3.9.x until central-publishing-maven-plugin handles Maven 3.10's release bundle
+      - name: Set up Maven
+        uses: PIH/openmrs-contrib-distro-tools/.github/actions/setup-maven@main
 
       - name: Setup Git Config
         run: |
