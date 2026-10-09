@@ -6,8 +6,8 @@ FROM eclipse-temurin:8-jre-jammy
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
-    && groupadd --system biometrics \
-    && useradd --system --gid biometrics --home-dir /opt/pih-biometrics/data biometrics
+    && groupadd --system --gid 9000 biometrics \
+    && useradd --system --uid 9000 --gid 9000 --home-dir /opt/pih-biometrics/data biometrics
 
 COPY pih-biometrics.jar /opt/pih-biometrics/bin/pih-biometrics.jar
 COPY neurotec-lib/ /opt/pih-biometrics/lib/

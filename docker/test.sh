@@ -49,6 +49,10 @@ done
     fail "expected a missing-license status, got: $status"
 echo "ok: starts and loads the native libraries without a license"
 
+# A fixed uid, so a rebuilt image can still open an existing volume's database
+[ "$(docker exec "$name" id -u)" = 9000 ] || fail "runs as uid $(docker exec "$name" id -u), not 9000"
+echo "ok: runs as uid 9000"
+
 docker exec "$name" test -f /opt/pih-biometrics/data/biometrics.db || fail "no database on the volume"
 echo "ok: creates its database on a fresh volume"
 
