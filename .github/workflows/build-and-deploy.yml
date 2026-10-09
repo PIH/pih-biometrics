@@ -59,7 +59,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # The image contains Neurotechnology's proprietary libraries, so it goes only to the private ghcr.io package.
       - name: Build, test and push the image
         run: |
           version=$(mvn -B -q org.apache.maven.plugins:maven-help-plugin:3.5.1:evaluate -Dexpression=project.version -DforceStdout)
