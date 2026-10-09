@@ -70,7 +70,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # release:prepare tagged the release as its version (tagNameFormat @{project.version}), on HEAD's parent.
-      # The image contains Neurotechnology's proprietary libraries, so it goes only to the private ghcr.io package.
       - name: Build, test and push the release image
         run: |
           version=$(git describe --tags --abbrev=0 HEAD~1)
