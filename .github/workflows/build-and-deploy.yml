@@ -65,7 +65,9 @@ jobs:
           image=ghcr.io/pih/pih-biometrics:$version
           docker/build.sh "$image"
           docker/test.sh "$image"
+          docker tag "$image" ghcr.io/pih/pih-biometrics:latest
           docker push "$image"
+          docker push ghcr.io/pih/pih-biometrics:latest
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GHA_WRITE_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
