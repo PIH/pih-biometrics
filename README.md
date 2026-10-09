@@ -15,7 +15,7 @@ This application has been designed to be [integrated with OpenMRS for fingerprin
 
 # Installation and Deployment
 
-Specific instructions related to installation and deployment at PIH can be found in [Bitbucket](https://bitbucket.org/partnersinhealth/biometrics-client-package).  Please see this repository for information on how to set things up for testing or production within on PIH systems.  A playbook for setting up the server component at PIH via Ansible can also be found in [Bitbucket](https://bitbucket.org/partnersinhealth/deployment).
+Specific instructions related to installation and deployment at PIH can be found in [Bitbucket](https://bitbucket.org/partnersinhealth/biometrics-client-package).  Please see this repository for information on how to set things up for testing or production within on PIH systems.  A playbook for setting up the server component at PIH via Ansible can also be found in [Bitbucket](https://bitbucket.org/partnersinhealth/deployment).  To run the server in Docker, see [docker/README.md](docker/README.md).
 
 General instructions are as follows:
 

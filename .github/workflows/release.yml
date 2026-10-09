@@ -8,6 +8,7 @@ jobs:
     if: github.repository_owner == 'PIH'
     permissions:
       contents: write
+      packages: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -60,6 +61,29 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.SONATYPE_GPG_PASSPHRASE }}
           MAVEN_GPG_KEY: ${{ secrets.SONATYPE_GPG_PRIVATE_KEY }}
           GITHUB_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # release:prepare tagged the release as its version (tagNameFormat @{project.version}), on HEAD's parent.
+      - name: Build, test and push the release image
+        run: |
+          version=$(git describe --tags --abbrev=0 HEAD~1)
+          git checkout -q "$version"
+          docker/build.sh "ghcr.io/pih/pih-biometrics:$version"
+          docker/test.sh "ghcr.io/pih/pih-biometrics:$version"
+          docker tag "ghcr.io/pih/pih-biometrics:$version" ghcr.io/pih/pih-biometrics:latest
+          docker push "ghcr.io/pih/pih-biometrics:$version"
+          docker push ghcr.io/pih/pih-biometrics:latest
+          git checkout -q -
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GHA_WRITE_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
+          GH_TOKEN: ${{ secrets.GHA_WRITE_TOKEN }}
 
       # release:prepare bumps the working copy to the next SNAPSHOT and pushes that commit, but
       # never deploys that snapshot itself - deploy it explicitly so it's available right away.
