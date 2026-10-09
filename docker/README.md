@@ -44,5 +44,5 @@ docker/test.sh ghcr.io/pih/pih-biometrics:dev    # smoke test, no license needed
 `~/.m2/settings.xml` has credentials for `github-pih-artifacts`; then `gh` needs the `read:packages`
 scope (`gh auth refresh -h github.com -s read:packages`).
 
-CI builds and pushes `<version>` and `latest` on every master build (so `latest` is the newest
-snapshot, as for PIH's other images), and `<version>` on a release.
+CI builds and pushes `<version>` and `latest` on every master build and release, so `latest` is the
+newest image of either kind, as for PIH's other images.

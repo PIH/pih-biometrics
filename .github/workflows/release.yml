@@ -76,7 +76,9 @@ jobs:
           git checkout -q "$version"
           docker/build.sh "ghcr.io/pih/pih-biometrics:$version"
           docker/test.sh "ghcr.io/pih/pih-biometrics:$version"
+          docker tag "ghcr.io/pih/pih-biometrics:$version" ghcr.io/pih/pih-biometrics:latest
           docker push "ghcr.io/pih/pih-biometrics:$version"
+          docker push ghcr.io/pih/pih-biometrics:latest
           git checkout -q -
         env:
           GITHUB_ACTOR: ${{ github.actor }}
