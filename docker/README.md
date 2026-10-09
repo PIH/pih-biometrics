@@ -18,9 +18,11 @@ Mount a volume at `/opt/pih-biometrics/data`: it holds the SQLite database of fi
 (patient data) and is the working directory. Fingerprint scanning is off: scanners attach to the
 client on the user's workstation, not to this server.
 
-The license is an internet license: it's checked online at least once every 7 days, and runs on one
-computer at a time. Moving it means stopping it on the old computer and possibly waiting for that
-activation to expire.
+The license is an internet license: it checks in with Neurotechnology over outbound HTTP (port 80)
+every few minutes, and runs on one machine at a time. A container is the same machine only if it keeps
+its hostname and the identity the library keeps in `/var/tmp` (`.pgd2.idm`, rewritten on every start),
+so give it a fixed hostname and put `/var/tmp` on a volume. Otherwise each new container is a new
+machine, and can't get the license until the previous activation expires (about 30–40 minutes).
 
 ## Checking a running server
 
