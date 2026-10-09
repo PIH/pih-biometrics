@@ -10,3 +10,7 @@ target/
 *.iws
 *.iml
 *.ipr
+
+### Image build (docker/build.sh) ###
+docker/build/
+docker/.sdk/
